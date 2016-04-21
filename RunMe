@@ -1,0 +1,32 @@
+#!/usr/bin/python
+import sys
+from randomguess import RandomGuess
+
+
+def train(doc_file_name, label_file_name):
+    docs = []
+    labels = []
+    with open(doc_file_name) as f:
+        docs = f.read()
+    with open(label_file_name) as f:
+        labels = f.readlines()
+    docs = docs.split('~~~~~')
+    docs = [doc.replace('\n', '').replace('<s>', '').replace(
+        '</s>', '~~~~').split('~~~~') for doc in docs]
+    labels = [int(i) for i in labels]
+    model = RandomGuess()
+    model.train(docs, labels)
+    model.save_model("randomguess.dat")
+    return model
+
+
+def main(model=None):
+    docs = sys.stdin.readlines()
+    if not model:
+        model = RandomGuess('randomguess.dat')
+    for doc in docs:
+        print model.predict(doc)
+
+if __name__ == "__main__":
+    # main()
+    main(train('data/dev_text.txt', 'data/dev_label.txt'))
