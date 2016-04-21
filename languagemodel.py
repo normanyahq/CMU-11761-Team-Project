@@ -42,7 +42,7 @@ class LanguageModel():
 
         # implement your training algorithm here.
 
-        logging('training done, positive_rate: %f' % self.positive_rate)
+        logging('training done.')
 
     def predict(self, doc):
         '''
