@@ -28,8 +28,11 @@ def load_data(doc_file_name, label_file_name):
         labels = f.readlines()
     docs = docs.split('~~~~~')
     docs = [doc.replace('\n', '').replace('<s>', '').split('</s>') for doc in docs if doc]
+    t_docs = []
     for doc in docs:
         doc = [sentence for sentence in doc if sentence.strip()]
+        t_docs.append(doc)
+    docs = t_docs
 
     labels = [int(i) for i in labels if i.strip().isdigit()]
     logging("Loaded %d docs, %d labels" % (len(docs), len(labels)))
