@@ -49,10 +49,18 @@ class RandomGuess(LanguageModel):
 
     def predict(self, doc):
         '''
-        for given string doc, return an integer either 0 or 1,
-            0: fake article, 1: true article
+        for given string doc, return three values:
+            P(fake|article), P(true|article) and class label:
+            eg:
+            0.791243 0.208757 0
+            note that P(fake|article) + P(true|article) = 1
+            and class label:
+                0: True
+                1: False
+            the threshold for labeling true or false is not necessary to be 0.5
         '''
+        pass
         if self.positive_rate > 0.5:
-            return 1
+            return self.positive_rate, 1 - self.positive_rate, 1
         else:
-            return 0
+            return self.positive_rate, 1 - self.positive_rate, 0
