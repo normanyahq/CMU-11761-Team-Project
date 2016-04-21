@@ -7,7 +7,7 @@ def logging(message):
         print message
     if save_log_to_file:
         with open(log_filename, "a") as f:
-            f.write(message + '\n')
+            f.write(str(message) + '\n')
 
 
 def load_data(doc_file_name, label_file_name):
@@ -28,8 +28,9 @@ def load_data(doc_file_name, label_file_name):
         labels = f.readlines()
     docs = docs.split('~~~~~')
     docs = [doc.replace('\n', '').replace('<s>', '').replace(
-        '</s>', '~~~~').split('~~~~') for doc in docs]
-    labels = [int(i) for i in labels]
+        '</s>', '~~~~').split('~~~~') for doc in docs if doc]
+    labels = [int(i) for i in labels if i.strip().isdigit()]
+    logging("Loaded %d docs, %d labels" % (len(docs), len(labels)))
     return docs, labels
 
 
