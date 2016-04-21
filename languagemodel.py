@@ -1,10 +1,9 @@
 import pickle
-from languagemodel import LanguageModel
 import random
 from utilities import logging
 
 
-class RandomGuess(LanguageModel):
+class LanguageModel():
 
     def save_model(self, model_file_name):
         '''
