@@ -1,5 +1,6 @@
 from __future__ import division
 from utilities import *
+import numpy as np
 
 def get_vocabulary(corpus):
     vocab = Set([])
@@ -60,22 +61,22 @@ def count_dict_val(dic):
 		total += dic[k]
 	return total
 
-def get_unigram_prob(unigram_count):
+def get_unigram_log_prob(unigram_count):
 	total_count = count_dict_val(unigram_count)
 	unigram_prob = {}
 	for k in unigram_count:
-		unigram_prob[k] = unigram_count[k] / total_count
+		unigram_prob[k] = np.log(unigram_count[k]) - np.log(total_count)
 	print "calculated unigram prob ... "
 	return unigram_prob
 
-def get_bigram_conditional_prob(bigram_count, unigram_count):
+def get_bigram_conditional_log_prob(bigram_count, unigram_count):
 	bigram_prob = {}
 	for w1, w2 in bigram_count:
-		bigram_prob[(w1, w2)] = bigram_count[(w1, w2)] / unigram_count[w1]
+		bigram_prob[(w1, w2)] = np.log(bigram_count[(w1, w2)]) - np.log(unigram_count[w1])
 	print "calculated bigram conditional prob ... "
 	return bigram_prob
 
-def get_skipgram_conditional_prob(trigram_count):
+def get_skipgram_conditional_log_prob(trigram_count):
 	skipgram_count = {}
 	for w1, w2, w3 in trigram_count:
 		if (w1, w3) in skipgram_count:
@@ -85,9 +86,12 @@ def get_skipgram_conditional_prob(trigram_count):
 
 	skipgram_prob = {}
 	for (w1, w2, w3) in trigram_count:
-		skipgram_prob[(w1, w2, w3)] = trigram_count[(w1, w2, w3)] / skipgram_count[(w1, w3)]
+		skipgram_prob[(w1, w2, w3)] = np.log(trigram_count[(w1, w2, w3)]) - np.log(skipgram_count[(w1, w3)])
 	print "calculated skipgram conditional prob ... "
 	return skipgram_prob
+
+# def perplexity(sent, prob):
+# 	for w in sent:
 
 
 
@@ -96,6 +100,6 @@ if __name__ == '__main__':
 	unigram_count = get_unigram_count(docs)
 	bigram_count = get_bigram_count(docs)
 	trigram_count = get_trigram_count(docs)
-	unigram_prob = get_unigram_prob(unigram_count)
-	bigram_prob = get_bigram_conditional_prob(bigram_count, unigram_count)
-	skipgram_prob = get_skipgram_conditional_prob(trigram_count)
+	unigram_prob = get_unigram_log_prob(unigram_count)
+	bigram_prob = get_bigram_conditional_log_prob(bigram_count, unigram_count)
+	skipgram_prob = get_skipgram_conditional_log_prob(trigram_count)
