@@ -1,6 +1,13 @@
 from __future__ import division
 from utilities import *
 import numpy as np
+import pickle
+import time
+# unigram_log_prob = pickle.load(open("unigram_log_prob.pkl", "rb"))
+# bigram_log_prob = pickle.load(open("bigram_log_prob.pkl", "rb"))
+# trigram_log_prob = pickle.load(open("trigram_log_prob.pkl", "rb"))
+# quadgram_log_prob = pickle.load(open("quadgram_log_prob.pkl", "rb"))
+# log_prob_list = [quadgram_log_prob, trigram_log_prob, bigram_log_prob, unigram_log_prob]
 
 def get_vocabulary(corpus):
     vocab = Set([])
@@ -55,6 +62,23 @@ def get_trigram_count(corpus):
 	print "Trigram Count:", len(trigram_count)
 	return trigram_count
 
+def get_quadgram_count(corpus):
+	quadgram_count = {}
+	for doc in corpus:
+		for sent in doc:
+			words = sent.split()
+			for i in range(3, len(words)):
+				w1 = words[i-3]
+				w2 = words[i-2]
+				w3 = words[i-1]
+				w4 = words[i]
+				if (w1, w2, w3, w4) not in quadgram_count:
+					quadgram_count[(w1, w2, w3, w4)] = 1
+				else:
+					quadgram_count[(w1, w2, w3, w4)] += 1
+	print "Quadgram Count:", len(quadgram_count)
+	return quadgram_count
+
 def count_dict_val(dic):
 	total = 0
 	for k in dic:
@@ -76,6 +100,20 @@ def get_bigram_conditional_log_prob(bigram_count, unigram_count):
 	print "calculated bigram conditional prob ... "
 	return bigram_prob
 
+def get_trigram_conditional_log_prob(trigram_count, bigram_count):
+	trigram_prob = {}
+	for w1, w2, w3 in trigram_count:
+		trigram_prob[(w1, w2, w3)] = np.log2(trigram_count[(w1, w2, w3)]) - np.log2(bigram_count[(w1, w2)])
+	print "calculated trigram conditional prob ... "
+	return trigram_prob
+
+def get_quadgram_conditional_log_prob(quadgram_count, trigram_count):
+	quadgram_prob = {}
+	for w1, w2, w3, w4 in quadgram_count:
+		quadgram_prob[(w1, w2, w3, w4)] = np.log2(quadgram_count[(w1, w2, w3, w4)]) - np.log2(trigram_count[(w1, w2, w3)])
+	print "calculated quadgram conditional prob ... "
+	return quadgram_prob
+
 def get_skipgram_conditional_log_prob(trigram_count):
 	skipgram_count = {}
 	for w1, w2, w3 in trigram_count:
@@ -90,32 +128,62 @@ def get_skipgram_conditional_log_prob(trigram_count):
 	print "calculated skipgram conditional prob ... "
 	return skipgram_prob
 
-def get_prob(log_prob_list, word):
+def get_prob(log_prob_list, words, i):
 	'''Back-off model, the last one must be unigram model with <UNK> vocab'''
-	for log_prob in log_prob_list:
-		if word in log_prob:
-			return log_prob[word]
+	for log_prob_ind in range(len(log_prob_list)):
+		log_prob = log_prob_list[log_prob_ind]
+		element = iter(log_prob).next()
+		if type(element) == str:
+			k = words[i-1]
+			# print 1
+		else:
+			hist_len = len(element)
+			start = max(i-hist_len, 0)
+			k = tuple(words[start:i])
+			# print k, hist_len, start, i
+
+		if k in log_prob:
+			# print k
+			return log_prob[k]
+
 	return log_prob_list[-1]['<UNK>']
 
 def get_log_likelihood(sent, log_prob_list):
 	lld = 0
 	words = sent.split()
-	for w in words:
-		lld += get_prob(log_prob_list, w)
-	return lld / len(words)
+	for i in range(1,len(words)+1):
+		lld += get_prob(log_prob_list, words, i)
+	return lld, len(words)
 
-def get_perplexity(sent, log_prob_list):
-	lld = get_log_likelihood(sent, log_prob_list)
+def get_sent_perplexity(sent, log_prob_list):
+	lld, word_num = get_log_likelihood(sent, log_prob_list)
+	lld /= word_num
 	return 2**(-lld)
+
+def get_doc_perplexity(doc, log_prob_list):
+	lld = 0
+	total_word = 0
+	for sent in doc:
+		words = sent.split()
+		for i in range(1,len(words)+1):
+			lld += get_prob(log_prob_list, words, i)
+		total_word += len(words)
+	lld /= total_word
+	return 2**(-lld)
+
+
 
 if __name__ == '__main__':
 	docs, labels = load_data("data/train_text.txt", "data/train_label.txt")
 	unigram_count = get_unigram_count(docs)
 	bigram_count = get_bigram_count(docs)
 	trigram_count = get_trigram_count(docs)
+	quadgram_count = get_quadgram_count(docs)
 	unigram_log_prob = get_unigram_log_prob(unigram_count)
 	bigram_log_prob = get_bigram_conditional_log_prob(bigram_count, unigram_count)
+	trigram_log_prob = get_trigram_conditional_log_prob(trigram_count, bigram_count)
+	quadgram_log_prob = get_quadgram_conditional_log_prob(quadgram_count, trigram_count)
 	skipgram_log_prob = get_skipgram_conditional_log_prob(trigram_count)
 
-	sent = "I HAVE A DREAM"
-	print get_perplexity(sent, [skipgram_log_prob, bigram_log_prob, unigram_log_prob])
+	sent = "YES THERE ARE ABOUT FOUR MINUTES PANELS ANIMALS"
+	print get_sent_perplexity(sent, [quadgram_log_prob, skipgram_log_prob, trigram_log_prob, bigram_log_prob, unigram_log_prob])

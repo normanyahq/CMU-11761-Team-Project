@@ -60,7 +60,7 @@ def feature_quad_tri_perplexity_ratio(doc):
 	tri_perplexity = get_doc_perplexity(doc, [trigram_log_prob, bigram_log_prob, unigram_log_prob])
 	t2 = time.time()
 
-	print quad_perplexity, tri_perplexity, quad_perplexity/tri_perplexity
+	# print quad_perplexity, tri_perplexity, quad_perplexity/tri_perplexity
 	return quad_perplexity/tri_perplexity
 
 
@@ -68,7 +68,7 @@ def extract_feature(doc):
 	# res = feature_reranking_parser_score(doc)
 	# res =
 	# logging(str(res))
-	# return res
+
 	res = feature_quad_tri_perplexity_ratio(doc)
 	return res
 
