@@ -38,6 +38,16 @@ def load_data(doc_file_name, label_file_name):
     logging("Loaded %d docs, %d labels" % (len(docs), len(labels)))
     return docs, labels
 
+def get_real_docs(docs, labels):
+    doc_label = zip(docs, labels)
+    real_docs = [doc for doc, label in doc_label if label == 1]
+    return real_docs
+
+def get_fake_docs(docs, labels):
+    doc_label = zip(docs, labels)
+    real_docs = [doc for doc, label in doc_label if label == 0]
+    return real_docs
+
 
 def cross_validation(model, docs, labels, batch_num):
     '''
