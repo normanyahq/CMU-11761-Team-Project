@@ -1,6 +1,5 @@
 from parameters import *
 import random
-from sets import Set
 
 def logging(message):
     if show_log:
@@ -37,16 +36,6 @@ def load_data(doc_file_name, label_file_name):
     labels = [int(i) for i in labels if i.strip().isdigit()]
     logging("Loaded %d docs, %d labels" % (len(docs), len(labels)))
     return docs, labels
-
-def get_vocabulary(docs):
-    vocab = Set([])
-    for doc in docs:
-        for sent in doc:
-            words = sent.split()
-            vocab.update(words)
-    print "Vocab Size: %d"% len(vocab)
-    return vocab
-
 
 def cross_validation(model, docs, labels, batch_num):
     '''
