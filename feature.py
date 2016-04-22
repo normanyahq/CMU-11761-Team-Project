@@ -4,7 +4,7 @@ from bllipparser import RerankingParser
 from utilities import *
 import numpy as np
 from multiprocessing import Pool
-
+import pickle
 
 rrp = RerankingParser.fetch_and_load('WSJ-PTB3', verbose=True)
 
@@ -53,8 +53,12 @@ def reranking_parser_score(doc, ifmean=True, ifmax=True, ifmin=True):
 def extract_feature(doc):
 	res = reranking_parser_score(doc)
 	logging(str(res))
+	return res
 
 if __name__ == '__main__':
 	docs, labels = load_data("data/train_text.txt", "data/train_label.txt")
+	feature = []
 	for doc in docs:
-		extract_feature(doc)
+		feature.append(extract_feature(doc))
+
+	pickle.dump(feature, open("feature.pkl", "wb"))
