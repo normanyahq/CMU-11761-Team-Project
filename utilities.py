@@ -1,6 +1,7 @@
 from parameters import *
 import random
 
+
 def logging(message):
     if show_log:
         print message
@@ -36,6 +37,7 @@ def load_data(doc_file_name, label_file_name):
     labels = [int(i) for i in labels if i.strip().isdigit()]
     logging("Loaded %d docs, %d labels" % (len(docs), len(labels)))
     return docs, labels
+
 
 def cross_validation(model, docs, labels, batch_num):
     '''
