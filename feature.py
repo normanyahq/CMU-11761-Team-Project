@@ -31,7 +31,7 @@ def reranking_parser_score(doc, ifmean=True, ifmax=True, ifmin=True):
 
 	logging("Start parsing doc")
 
-	p = Pool(100)
+	p = Pool(10)
 	scores = p.map(get_parser_score, doc)
 	logging(scores)
 
