@@ -63,13 +63,14 @@ def feature_quad_tri_perplexity_ratio(docs_as_words):
 	tri_perplexity = get_doc_perplexity(docs_as_words, [trigram_log_prob, bigram_log_prob, unigram_log_prob])
 	t2 = time.time()
 
-	return quad_perplexity/tri_perplexity
+	return [quad_perplexity/tri_perplexity]
 
-def get_content_words(unigram_count):
+def get_content_stop_words(unigram_count, cw_start=150, cw_end=6500, sw_end=50):
 	sorted_x = sorted(unigram_count.items(), key=operator.itemgetter(1), reverse=True)
-	content_words = [w for w, c in sorted_x[150:6500]]
-	print "Content Words Done ..."
-	return Set(content_words)
+	content_words = [w for w, c in sorted_x[cw_start:cw_end]]
+	stop_words = [w for w, c in sorted_x[:sw_end]]
+	print "Content Stop Words Done ..."
+	return Set(content_words), Set(stop_words)
 
 def get_common_content_word_pairs(docs, real_docs_as_words, content_words, thresh=90):
 	# print "get_common_content_word_pairs ..."	
@@ -122,9 +123,48 @@ def feature_common_content_word_pairs(doc, ccw_list):
 		if pair in ccw_list:
 			ccw_cnt += len(pair_corr_list_5[pair])
 			# print len(pair_corr_list_5[pair])
-	return 1.0 * ccw_cnt/pair_cnt
+	return [1.0 * ccw_cnt/pair_cnt]
 
-def extract_feature(doc, docs_as_words):
+def feature_content_and_stopwords(doc_as_words, content_words, stop_words):
+	# the percentage of the doc that are content_words or stop_words:
+	cw_cnt = 0.0
+	sw_cnt = 0.0
+	total_words = 0.0
+
+	# longest concecutive stop words / content words
+	prev_word = 0 # 0 Neither;  1 stopword;  2 content word
+	longest_ccw = 0
+	longest_csw = 0
+	
+	for words in doc_as_words:
+		total_words += len(words)
+		cur_ccw = 1
+		cur_csw = 1
+		prev_word = 0
+		for word in words:
+			if word in stop_words:
+				sw_cnt += 1
+				if prev_word == 1:
+					cur_csw += 1 
+				prev_word = 1
+			elif word in content_words:
+				cw_cnt += 1
+
+				if prev_word == 2:
+					cur_ccw += 1
+				prev_word = 2
+			else:
+				if cur_ccw > longest_ccw:
+					longest_ccw = cur_ccw
+				if cur_csw > longest_csw:
+					longest_csw = cur_csw
+				cur_ccw = 1
+				cur_csw = 1
+				prev_word = 0
+
+	return [cw_cnt/total_words, sw_cnt/total_words, longest_ccw, longest_csw]
+
+def extract_feature(doc, doc_as_words):
 	# res = feature_reranking_parser_score(doc)
 	# res =
 	# logging(str(res))
@@ -132,7 +172,9 @@ def extract_feature(doc, docs_as_words):
 	# res = feature_quad_tri_perplexity_ratio(docs_as_words)
 
 
-	res = feature_common_content_word_pairs(doc, ccw_list)
+	# res = feature_common_content_word_pairs(doc, ccw_list)
+
+	res = feature_content_and_stopwords(doc_as_words, content_words, stop_words)
 	return res
 
 if __name__ == '__main__':
@@ -154,8 +196,8 @@ if __name__ == '__main__':
 	# bigram_log_prob = get_bigram_conditional_log_prob(bigram_count, unigram_count)
 	# trigram_log_prob = get_trigram_conditional_log_prob(trigram_count, bigram_count)
 	# quadgram_log_prob = get_quadgram_conditional_log_prob(quadgram_count, trigram_count)
-	content_words = get_content_words(unigram_count)
-	ccw_list = get_common_content_word_pairs(docs, real_docs_as_words, content_words, 99)
+	content_words, stop_words = get_content_stop_words(unigram_count)
+	# ccw_list = get_common_content_word_pairs(docs, real_docs_as_words, content_words, 99)
 	# pickle.dump(ccw_list, open("ccw_list.pkl","wb"))
 	# ccw_list = pickle.load(open("ccw_list.pkl","rb"))
 	feature = []
