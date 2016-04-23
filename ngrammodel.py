@@ -192,6 +192,15 @@ def get_doc_perplexity(doc_as_words, log_prob_list):
 	lld /= total_word
 	return 2**(-lld)
 
+def get_doc_perplexity_skipgram(doc_as_words, log_prob_list):
+	lld = 0
+	total_word = 0
+	for words in doc_as_words:
+		for i in range(1,len(words)+1):
+			lld += get_prob_skipgram(log_prob_list, words, i)
+		total_word += len(words)
+	lld /= total_word
+	return 2**(-lld)
 
 
 if __name__ == '__main__':
