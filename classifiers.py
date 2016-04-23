@@ -29,7 +29,7 @@ class classify(LanguageModel):
         self.model_obj = None
         self.model_file_name = model+ ".out"
        
-    def train(self, docs, labels):
+    def train(self, feature_pkl, label_pkl):
         '''
         docs: a list of docs, each doc is a list of sentences,
             '~~~~', '<s>' and '</s>' are removed
@@ -41,13 +41,18 @@ class classify(LanguageModel):
         '''
         newly added scaling
         '''
-        features = pickle.load(open('feature_all_train.pkl'))
-        
-        features = [[x] for x in features] #!!!!!ONLY USED FOR SINGLE FEATURE
+        #features = pickle.load(open('feature_perp_ratio_train.pkl'))
+        features = pickle.load(open(feature_pkl))
+        #features = [[x] for x in features] #!!!!!ONLY USED FOR SINGLE FEATURE
         labels = pickle.load(open('trun_label.pkl'))
         features = np.array(features)#preprocessing.scale(np.array(features))
+        #labels = np.array(labels[int(len(labels)/10):])
         labels = np.array(labels)
+        print len(features),len(labels)
+        for i in range(len(features)):
+            print "feature: %s,label: %d" %(features[i],labels[i])
         #labels = np.array([1,1,0,0])
+        '''
         real_feature = []
         fake_feature = []
         for i in range(len(labels)):
@@ -59,6 +64,7 @@ class classify(LanguageModel):
         plt.hist(real_feature)
         plt.hist(fake_feature)
         plt.show()
+        '''
         logging('start training...')
         if self.model == 'logit': # logistic regression
             self.train_logit(features,labels)
@@ -77,32 +83,56 @@ class classify(LanguageModel):
         self.save_model(self.model+'.out')
         
 
-    def predict(self, doc):
+    def predict(self, feature_pkl):
         '''
         for given string doc, return an integer either 0 or 1,
             0: fake article, 1: true article
         '''
         # try to use ensemble of different classifiers
         #features = doc2feature([doc])
-        features = pickle.load(open('feature_all_dev.pkl'))
+        #features = pickle.load(open('feature_perp_ratio_dev.pkl'))
+        features = pickle.load(open(feature_pkl))
         labels = []
+        print "start predicting"
         for line in open('./data/dev_label.txt'):
             labels.append(int(line.strip()))
-
-        features = [[x] for x in features]
+        print features
+        #labels = pickle.load(open('trun_label.pkl'))
+        #labels = labels[int(len(labels)/10):2*int(len(labels)/10)]
+        #labels = labels[:int(len(labels)/10)]
+        labels = np.array(labels)
+        #features = [[x] for x in features]
         features = np.array(features)
         predictions = self.model_obj.predict(features) # [[label]]
         probas = self.model_obj.predict_proba(features) # [[p0,p1]]
+        for i in range(len(features)):
+            print "feature: %f,label: %d,predictoin: %d" %(features[i][0],labels[i],predictions[i])
+        '''
+        real_feature = []
+        fake_feature = []
+        for i in range(len(labels)):
+            #print labels[i], features[i][0]
+            if labels[i] == 1:
+
+                real_feature.append(features[i][0])
+            else:
+                fake_feature.append(features[i][0])
+        
+        plt.figure()
+        plt.hist(real_feature)
+        plt.hist(fake_feature)
+        plt.savefig('pred_dist.png')
         #print probas
         # probas for svm is different with training result, which is obtained by cv
         # it's also meaningless on small dataset
         #print probas[0][0],probas[0][1],predictions[0]
         print predictions
+        '''
         correct = 0
         for i in range(len(predictions)):
             if labels[i] == predictions[i]:
                 correct += 1
-        print correct * 1.0/len(predictions)
+        print "accuracy:",correct * 1.0/len(predictions)
         return
 
     def train_logit(self,features,labels):
