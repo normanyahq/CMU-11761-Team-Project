@@ -116,7 +116,7 @@ def feature_common_content_word_pairs(doc, ccw_list):
 	pair_cnt = sum([len(pair_corr_list[p]) for p in pair_corr_list ])
 	if pair_cnt < 1:
 		print "Too short doc ..."
-		return 0
+		return [0]
 
 	# print "generate_pairs done ..."
 	for pair in pair_corr_list_5:
