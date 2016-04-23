@@ -7,8 +7,24 @@ global pair_corr_score_5
 global pair_corr_list
 global pair_corr_list_5
 global word_dict
+global unseen_pairs
 
-def simple_statistics(doc):
+# functions to call to generate features:
+# 1. feature_simple_statistics(doc):
+#    return: 12 features in two list(each list have 6 features)
+#    this is the function to generate simple statistics about correlation values
+#
+# 2. feature_percentage_corr:
+#    return: 1 feature
+#    this is the function to percentage of correlation values above some threshold
+#
+# 3. feature_unseen_pairs:
+#    return: 2 feature in one list [num of unseen_pairs, percent of unseen pairs]
+#    this is the function to generate the number of unseen pairs and the percent of unseen pairs
+
+
+# this is the function to generate Simple Statistics features
+def feature_simple_statistics(doc):
     global pair_corr_score
     global pair_corr_score_5
 
@@ -39,11 +55,15 @@ def simple_statistics(doc):
 
     return [feature_simple, feature_simple_5]
 
+# this is the function to generate word pairs in a doc
+# return 1. all word pairs 2. words pairs have distance >= 5
 def generate_pairs(doc):
     global pair_corr_list
     global pair_corr_list_5
     global word_dict
+    global unseen_pairs
 
+    unseen_pairs = 0
     pair_corr_list = defaultdict(list())
     pair_corr_list_5 = defaultdict(list())
     # list = (sid1, sid2, ..., sidn)
@@ -66,6 +86,7 @@ def generate_pairs(doc):
 
                 if pair not in pair_corr_list:
                     pair_corr_list[pair] = [sid]
+                    unseen_pairs += 1
                 else:
                     pair_corr_list[pair].append(sid)
                 if j - i >= 5:
@@ -76,7 +97,8 @@ def generate_pairs(doc):
 
     return [pair_corr_list, pair_corr_list_5]
 
-
+# this is the funciton to get the correlation value of word pairs
+# return two score lists
 def get_corr(doc):
     global pair_corr_score
     global pair_corr_score_5
@@ -109,8 +131,8 @@ def get_corr(doc):
         q = (c11 * c22 - c12 * c21) / (c11 * c22 + c12 * c21)
         pair_corr_score_5.append(q)
 
-
-def pencentage_corr(doc, threshold):
+# this is to generate the feature of percentage of correlation values above a threshold
+def feature_pencentage_corr(doc, threshold):
     global pair_corr_score
     # global pair_corr_score_5
 
@@ -125,6 +147,37 @@ def pencentage_corr(doc, threshold):
     return float(count) / len(pair_corr_score)
 
 
-def percentage_corr(doc):
+def feature_percentage_corr(doc):
     threshold = 0.3
-    return pencentage_corr(doc, threshold)
+    return feature_pencentage_corr(doc, threshold)
+
+
+# this is to generate the number of unseen pairs and the percent of unseen pairs
+# return [num of unseen_pairs, percent of unseen pairs]
+def feature_unseen_pairs(doc):
+    global unseen_pairs
+    global pair_corr_list
+
+    if len(pair_corr_list) == 0:
+        generate_pairs(doc)
+
+    pairs_sum = 0
+    for sentence in doc:
+        pairs_sum += len(sentence) * (len(sentence) - 1) / 2
+
+    return [unseen_pairs, float(unseen_pairs) / pairs_sum]
+
+
+def get_stop_word_list():
+    data_file = './data/stop_word_list.txt'
+    data = open(data_file, 'r')
+
+    stop_words = list()
+
+    for line in data:
+        word = line.replace("\n", "")
+        stop_words.append(word)
+
+    return stop_words
+
+
