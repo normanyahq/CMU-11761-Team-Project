@@ -20,10 +20,15 @@ global unseen_pairs
 #
 # 4. feature_repetition:
 #    return: 2 features in one list [percent of repetition, the length of the longest repeated phrase]
-# 5. def feature_ratio_content_stop:
+#
+# 5. feature_ratio_content_stop:
 #    return: 1 feature
 #    this is the ratio of content words and stop words (ratio_content_stop = #stop_words / #content_words)
 #
+# 6. feature_coherence_score:
+#    return: 2 features in one list [coherence_score_all_pairs, cohrence_score_distant_pairs]
+#    this return the coherence score of each doc(all pairs and only distant pairs(>=5))
+
 
 # this is the function to generate Simple Statistics features
 def feature_simple_statistics(doc):
@@ -64,6 +69,7 @@ def feature_simple_statistics(doc):
     feature_simple_5 = [mean_5, median_5, var_5, max_5, min_5, range_5]
 
     return [feature_simple, feature_simple_5]
+
 
 # this is the function to generate word pairs in a doc
 # return 1. all word pairs 2. words pairs have distance >= 5
@@ -138,7 +144,10 @@ def get_corr(doc):
         c12 = len(set(word_dict[pair.split(' ')[0]])) - c11
         c21 = len(set(word_dict[pair.split(' ')[1]])) - c11
         c22 = len(doc) - c11 - c12 - c21
-        q = float(c11 * c22 - c12 * c21) / (c11 * c22 + c12 * c21)
+        if c11 * c22 + c12 * c21 == 0:
+            q = 0
+        else:
+            q = float(c11 * c22 - c12 * c21) / (c11 * c22 + c12 * c21)
         # if q < -1:
         #     print "whoops"
         pair_corr_score.append(q)
@@ -149,12 +158,16 @@ def get_corr(doc):
         c12 = len(set(word_dict[pair.split(' ')[0]])) - c11
         c21 = len(set(word_dict[pair.split(' ')[1]])) - c11
         c22 = len(doc) - c11 - c12 - c21
-        q = float(c11 * c22 - c12 * c21) / (c11 * c22 + c12 * c21)
+        if c11 * c22 + c12 * c21 == 0:
+            q = 0
+        else:
+            q = float(c11 * c22 - c12 * c21) / (c11 * c22 + c12 * c21)
         # if q < -1:
         #     print "whoops"
         pair_corr_score_5.append(q)
 
     return [pair_corr_score, pair_corr_score_5]
+
 
 # this is to generate the feature of percentage of correlation values above a threshold
 def feature_pencentage_corr(doc, threshold):
@@ -240,7 +253,6 @@ def feature_ratio_stop_content(doc):
     stop_words_count = 0
     content_words_count = 0
 
-
     for sentence in doc:
         sentence = sentence.split()
         for word in sentence:
@@ -253,13 +265,51 @@ def feature_ratio_stop_content(doc):
     return ratio_stop_content
 
 
+def feature_coherence_score(doc):
+    common_content_word_pair_count = pickle.load(open("common_content_word_pair_count.pkl", "rb"))
+    [pair_corr_list, pair_corr_list_5, word_dict] = generate_pairs(doc)
+    [pair_corr_score, pair_corr_score_5] = get_corr(doc)
+
+    i = 0
+    sum_corr = 0
+    count_content_pairs = 0
+    for pair in pair_corr_list:
+        if pair in common_content_word_pair_count:
+            freq = len(pair_corr_list[pair])
+            count_content_pairs += freq
+            sum_corr += (pair_corr_score[i] * freq)
+        i += 1
+    if count_content_pairs == 0:
+        avg_corr = 0
+    else:
+        avg_corr = float(sum_corr) / count_content_pairs
+
+    i = 0
+    sum_corr_5 = 0
+    count_content_pairs_5 = 0
+    for pair in pair_corr_list_5:
+        if pair in common_content_word_pair_count:
+            freq = len(pair_corr_list_5[pair])
+            count_content_pairs_5 += freq
+            sum_corr_5 += (pair_corr_score_5[i] * freq)
+        i += 1
+    if count_content_pairs_5 == 0:
+        avg_corr_5 = 0
+    else:
+        avg_corr_5 = float(sum_corr_5) / count_content_pairs_5
+
+    return [avg_corr, avg_corr_5]
+
+
+
 
 def main():
-    docs, labels = utilities.load_data('./data/dev_text.txt', './data/dev_label.txt')
+    docs, labels = utilities.load_data('./data/train_text.txt', './data/train_label.txt')
     last = len(docs) - 1
     for i in range(len(docs)):
         print i
-        print feature_ratio_stop_content(docs[i])
+        print feature_coherence_score(docs[i])
+        # print feature_ratio_stop_content(docs[i])
         # print feature_simple_statistics(docs[i])
         # print feature_unseen_pairs(docs[i])
     #     print feature_repetition(docs[i])
