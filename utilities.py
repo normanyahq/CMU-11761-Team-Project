@@ -1,6 +1,6 @@
 from parameters import *
 import random
-
+import pickle
 
 def logging(message):
     if show_log:
@@ -114,6 +114,7 @@ def cross_validation(model, docs, labels, batch_num):
     logging("Average Accuracy: %.2f%%" % (average_accuracy * 100))
 
 
+    
 if __name__ == '__main__':
     docs, labels = load_data("data/train_text.txt", "data/train_label.txt")
     get_vocabulary(docs)

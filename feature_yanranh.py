@@ -31,7 +31,7 @@ global unseen_pairs
 
 
 # this is the function to generate Simple Statistics features
-def feature_simple_statistics(doc):
+def feature_simple_statistics(doc,doc_as_words):
     # global pair_corr_score
     # global pair_corr_score_5
 
@@ -185,14 +185,14 @@ def feature_pencentage_corr(doc, threshold):
     return float(count) / len(pair_corr_score)
 
 
-def feature_percentage_corr(doc):
+def feature_percentage_corr(doc,doc_as_words):
     threshold = 0.3
     return feature_pencentage_corr(doc, threshold)
 
 
 # this is to generate the number of unseen pairs and the percent of unseen pairs
 # return [num of unseen_pairs, percent of unseen pairs]
-def feature_unseen_pairs(doc):
+def feature_unseen_pairs(doc,doc_as_words):
     global unseen_pairs
     global pair_corr_list
 
@@ -221,7 +221,7 @@ def get_stop_word_list():
 
 # return: 2 features in one list [percent of repetition, the length of the longest repeated phrase]
 # note: single word are also included as general "phrases"
-def feature_repetition(doc):
+def feature_repetition(doc,doc_as_words):
     phrase_list = list()
     repetition_count = 0
     max_phrase_length = 0
@@ -247,7 +247,7 @@ def feature_repetition(doc):
 
 #    return: 1 feature
 #    this is the ratio of content words and stop words (ratio_content_stop = #stop_words / #content_words)
-def feature_ratio_stop_content(doc):
+def feature_ratio_content_stop(doc,doc_as_words):
     stop_words = get_stop_word_list()
     content_words = pickle.load(open("content_words.pkl", "rb"))
     stop_words_count = 0
@@ -265,7 +265,7 @@ def feature_ratio_stop_content(doc):
     return ratio_stop_content
 
 
-def feature_coherence_score(doc):
+def feature_coherence_score(doc,doc_as_words):
     common_content_word_pair_count = pickle.load(open("common_content_word_pair_count.pkl", "rb"))
     [pair_corr_list, pair_corr_list_5, word_dict] = generate_pairs(doc)
     [pair_corr_score, pair_corr_score_5] = get_corr(doc)

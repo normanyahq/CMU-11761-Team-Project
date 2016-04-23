@@ -27,7 +27,7 @@ class classify(LanguageModel):
         '''
         self.model = model
         self.model_obj = None
-        self.model_file_name = model+ ".out"
+        self.model_file_name = './model/' + model+ ".out"
        
     def train(self, feature_pkl, label_pkl):
         '''

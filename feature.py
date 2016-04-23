@@ -1,5 +1,5 @@
 from __future__ import division
-from bllipparser import RerankingParser
+#from bllipparser import RerankingParser
 # from nltk.parse.bllip import BllipParser
 from utilities import *
 from ngrammodel import *
@@ -168,9 +168,18 @@ def extract_feature(ffunc_list, doc, doc_as_words):
 
 	# res = feature_common_content_word_pairs(doc, ccw_list)
 	res = []
+	tmp = None
 	for fn in ffunc_list:
-		res += fn(doc, doc_as_words)
-
+		tmp = fn(doc, doc_as_words)
+		if type(tmp) is list:
+			if type(tmp[0]) in (list,tuple):
+				for e in tmp:
+					for ee in e:
+						res.append(ee)
+			else:
+				res += tmp
+		else:
+			res.append(tmp)
 	# logging(str(res))
 	return res
 
@@ -204,6 +213,19 @@ if __name__ == '__main__':
 	parser.add_argument("-f43pprt", help="add feature_quad_tri_perplexity_ratio", action="store_true")
 	parser.add_argument("-fccwp", help="add feature_common_content_word_pairs", action="store_true")
 	parser.add_argument("-fcs", help="add feature_content_and_stopwords", action="store_true")
+	'''
+		Added features from yanran
+	'''
+	parser.add_argument("-fss", help="add feature_simple_statistics", action="store_true")
+	parser.add_argument("-fpc", help="add feature_percentage_corr", action="store_true")
+	parser.add_argument("-fup", help="add feature_unseen_pairs", action="store_true")
+	parser.add_argument("-fr", help="add feature_repetition", action="store_true")
+	parser.add_argument("-frcs",help="add feature_ratio_content_stop", action="store_true")
+	parser.add_argument("-fcscore",help="add feature_coherence_score", action="store_true")
+
+	'''
+		Added features from anglu
+	'''
 
 	parser.add_argument("-fs", "--fsave", type=str, help="save feature to pickle")
 
@@ -237,7 +259,27 @@ if __name__ == '__main__':
 	if args.fcs:
 		ffunc_list.append(feature_content_and_stopwords)
 		dep.update(dependency["fcs"])
-
+	
+	if args.fss:
+		ffunc_list.append(feature_simple_statistics)
+		#dep.update(dependency["fss"])
+	if args.fpc:
+		ffunc_list.append(feature_percentage_corr)
+		#dep.update(dependency["fpc"])
+	if args.fup:
+		ffunc_list.append(feature_unseen_pairs)
+		#dep.update(dependency["fup"])
+	if args.fup:
+		ffunc_list.append(feature_repetition)
+		#dep.update(dependency["fr"])	
+	if args.fup:
+		ffunc_list.append(feature_ratio_content_stop)
+		#dep.update(dependency["frcs"])
+	if args.fup:
+		ffunc_list.append(feature_coherence_score)
+		#dep.update(dependency["fcscore"])
+	
+	print "ffunc_list",ffunc_list
 
 	for d in dep:
 		if d == "rrp":
@@ -280,14 +322,14 @@ if __name__ == '__main__':
 
 	for docid, doc, doc_as_words, label in zip(range(len(train_docs)), train_docs, train_docs_as_words, train_labels):
 		ft = extract_feature(ffunc_list, doc, doc_as_words)
-		# print ft, label
+		#print ft, label
 		feature.append(ft)
 
 		if docid % 200 == 199:
 			print ft, label
 
 		if args.fsave:
-			pickle.dump(feature, open("train_"+args.fsave, "wb"))
+			pickle.dump(feature, open("train_"+args.fsave + ".pkl", "wb"))
 
 	dev_feature = []
 	if isdefined("dev_docs"):
@@ -300,7 +342,7 @@ if __name__ == '__main__':
 				print ft, label
 
 		if args.fsave:
-			pickle.dump(dev_feature, open("dev_"+args.fsave, "wb"))
+			pickle.dump(dev_feature, open("dev_"+args.fsave + ".pkl", "wb"))
 
 	if isdefined("pred_docs"):
 		for docid, doc, doc_as_words in zip(range(len(pred_docs)), pred_docs, pred_docs_as_words):
