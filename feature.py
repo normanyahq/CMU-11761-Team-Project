@@ -1,5 +1,5 @@
 from __future__ import division
-# from bllipparser import RerankingParser
+from bllipparser import RerankingParser
 # from nltk.parse.bllip import BllipParser
 from utilities import *
 from ngrammodel import *
@@ -12,6 +12,8 @@ import operator
 from feature_yanranh import *
 from collections import defaultdict
 from sets import Set
+import argparse
+from parameters import *
 
 def get_parser_score(sent):
 	try:
@@ -24,43 +26,33 @@ def get_parser_score(sent):
 
 	return score
 
-def feature_reranking_parser_score(doc, ifmean=True, ifmax=True, ifmin=True):
-	# from nltk.data import find
-	# model_dir = find('models/bllip_wsj_no_aux').path
-	# rrp = BllipParser.from_unified_model_dir(model_dir)
-
+def feature_reranking_parser_score(doc, doc_as_words):
 	curTotal = 0
 	curMax = -np.inf
 	curMin = np.inf
-	# print len(doc)
 
-	# q = Queue()
 	p_list = []
 
-	# logging("Start parsing doc")
-
-	
 	scores = p.map(get_parser_score, doc)
 	scores = [s for s in scores if s != 0]
-	# logging(scores)
 
 	res = []
-	if ifmean:
+	if fparse_mean:
 		mean = np.sum(scores) / len(scores)
 		res.append(mean)
 
-	if ifmax:
+	if fparse_max:
 		res.append(max(scores))
 
-	if ifmin:
+	if fparse_min:
 		res.append(min(scores))
 
 	return res
 
-def feature_quad_tri_perplexity_ratio(docs_as_words):
+def feature_quad_tri_perplexity_ratio(doc, doc_as_words):
 	t1 = time.time()
-	quad_perplexity = get_doc_perplexity(docs_as_words, [quadgram_log_prob, trigram_log_prob, bigram_log_prob, unigram_log_prob])
-	tri_perplexity = get_doc_perplexity(docs_as_words, [trigram_log_prob, bigram_log_prob, unigram_log_prob])
+	quad_perplexity = get_doc_perplexity(doc_as_words, [quadgram_log_prob, trigram_log_prob, bigram_log_prob, unigram_log_prob])
+	tri_perplexity = get_doc_perplexity(doc_as_words, [trigram_log_prob, bigram_log_prob, unigram_log_prob])
 	t2 = time.time()
 
 	return [quad_perplexity/tri_perplexity]
@@ -72,28 +64,30 @@ def get_content_stop_words(unigram_count, cw_start=150, cw_end=6500, sw_end=50):
 	print "Content Stop Words Done ..."
 	return Set(content_words), Set(stop_words)
 
-def get_common_content_word_pairs(docs, real_docs_as_words, content_words, thresh=90):
-	# print "get_common_content_word_pairs ..."	
-	# cw_cnt_dict = {}
-	# cw_instance_cnt = 0
-	# for docid in range(len(docs)):
-	# 	doc = docs[docid]
-		
-	# 	[pair_corr_list, pair_corr_list_5, word_dict] = generate_pairs(doc)
-	# 	for pair in pair_corr_list_5:
-	# 		words = pair.split()
-	# 		if words[0] in content_words and words[1] in content_words:
-	# 			cw_instance_cnt += 1
-	# 			if pair in cw_cnt_dict:
-	# 				cw_cnt_dict[pair] += 1
-	# 			else:
-	# 				cw_cnt_dict[pair] = 1
+def get_common_content_word_pairs(docs, real_docs_as_words, content_words, thresh=90, load=False):
+	if load:
+		cw_cnt_dict = pickle.load(open("cw_cnt_dict.pkl", "rb"))
+	else:
+		print "get_common_content_word_pairs ..."	
+		cw_cnt_dict = {}
+		cw_instance_cnt = 0
+		for docid in range(len(docs)):
+			doc = docs[docid]
+			
+			[pair_corr_list, pair_corr_list_5, word_dict] = generate_pairs(doc)
+			for pair in pair_corr_list_5:
+				words = pair.split()
+				if words[0] in content_words and words[1] in content_words:
+					cw_instance_cnt += 1
+					if pair in cw_cnt_dict:
+						cw_cnt_dict[pair] += 1
+					else:
+						cw_cnt_dict[pair] = 1
 
-	# 	if docid % 200 == 199:
-	# 		print "doc", docid
-	# pickle.dump(cw_cnt_dict, open("cw_cnt_dict.pkl", "wb"))
+			if docid % 200 == 199:
+				print "doc", docid
+		pickle.dump(cw_cnt_dict, open("cw_cnt_dict.pkl", "wb"))
 
-	cw_cnt_dict = pickle.load(open("cw_cnt_dict.pkl", "rb"))
 	# sorted_x = sorted(cw_cnt_dict.items(), key=operator.itemgetter(1))
 	# for x in sorted_x:
 	# 	print x
@@ -108,7 +102,7 @@ def get_common_content_word_pairs(docs, real_docs_as_words, content_words, thres
 
 	return Set(ccw_cnt_dict.keys())
 	
-def feature_common_content_word_pairs(doc, ccw_list):
+def feature_common_content_word_pairs(doc, doc_as_words):
 	ccw_cnt  = 0.0
 	# print le n(doc)
 	[pair_corr_list, pair_corr_list_5, word_dict] = generate_pairs(doc)
@@ -125,7 +119,7 @@ def feature_common_content_word_pairs(doc, ccw_list):
 			# print len(pair_corr_list_5[pair])
 	return [1.0 * ccw_cnt/pair_cnt]
 
-def feature_content_and_stopwords(doc_as_words, content_words, stop_words):
+def feature_content_and_stopwords(doc, doc_as_words):
 	# the percentage of the doc that are content_words or stop_words:
 	cw_cnt = 0.0
 	sw_cnt = 0.0
@@ -164,7 +158,7 @@ def feature_content_and_stopwords(doc_as_words, content_words, stop_words):
 
 	return [cw_cnt/total_words, sw_cnt/total_words, longest_ccw, longest_csw]
 
-def extract_feature(doc, doc_as_words):
+def extract_feature(ffunc_list, doc, doc_as_words):
 	# res = feature_reranking_parser_score(doc)
 	# res =
 	# logging(str(res))
@@ -173,42 +167,155 @@ def extract_feature(doc, doc_as_words):
 
 
 	# res = feature_common_content_word_pairs(doc, ccw_list)
+	res = []
+	for fn in ffunc_list:
+		res += fn(doc, doc_as_words)
 
-	res = feature_content_and_stopwords(doc_as_words, content_words, stop_words)
+	# logging(str(res))
+	return res
+
+##### set dependency #####
+# pay attention to the order please
+dependency = {}
+dependency["fparser"] = Set(["rrp"])
+dependency["f43pprt"] = Set(["unigram", "bigram", "trigram", "quadgram"])
+dependency["fccwp"] = Set(["cs_words", "ccw_list"])
+dependency["fcs"] = Set(["cs_words"])
+
+def isdefined(param_name):
+	res = param_name in locals() or param_name in globals()
+	# print param_name, res
 	return res
 
 if __name__ == '__main__':
-	# rrp = RerankingParser.fetch_and_load('WSJ-PTB3', verbose=True)
 	p = Pool(10)
+	ffunc_list = []
+	dep = Set([])
+	parser = argparse.ArgumentParser()
+	parser.add_argument("-td", "--train_doc", type=str, help="set training document path (pickle only)")
+	parser.add_argument("-tl", "--train_label", type=str, help="set training label path (pickle only)")
 
-	#docs, labels = load_data("data/train_text.txt", "data/train_label.txt")
-	docs = pickle.load(open('trun_doc.pkl'))
-	labels = pickle.load(open('trun_label.pkl'))
-	docs_as_words = get_docs_as_wordlist(docs)
-	real_docs_as_words = get_real_docs(docs_as_words, labels)
+	parser.add_argument("-dd", "--dev_doc", type=str, help="set dev document path (pickle only)")
+	parser.add_argument("-dl", "--dev_label", type=str, help="set dev label path (pickle only)")
 
-	unigram_count = get_unigram_count(docs_as_words)
-	# bigram_count = get_bigram_count(docs_as_words)
-	# trigram_count = get_trigram_count(docs_as_words)
-	# quadgram_count = get_quadgram_count(docs_as_words)
+	parser.add_argument("-pd", "--pred_doc", type=str, help="set prediction document path (pickle only)")
 
-	# unigram_log_prob = get_unigram_log_prob(unigram_count)
-	# bigram_log_prob = get_bigram_conditional_log_prob(bigram_count, unigram_count)
-	# trigram_log_prob = get_trigram_conditional_log_prob(trigram_count, bigram_count)
-	# quadgram_log_prob = get_quadgram_conditional_log_prob(quadgram_count, trigram_count)
-	content_words, stop_words = get_content_stop_words(unigram_count)
-	# ccw_list = get_common_content_word_pairs(docs, real_docs_as_words, content_words, 99)
-	# pickle.dump(ccw_list, open("ccw_list.pkl","wb"))
-	# ccw_list = pickle.load(open("ccw_list.pkl","rb"))
+	parser.add_argument("-fparser", help="add feature_reranking_parser_score", action="store_true")
+	parser.add_argument("-f43pprt", help="add feature_quad_tri_perplexity_ratio", action="store_true")
+	parser.add_argument("-fccwp", help="add feature_common_content_word_pairs", action="store_true")
+	parser.add_argument("-fcs", help="add feature_content_and_stopwords", action="store_true")
+
+	parser.add_argument("-fs", "--fsave", type=str, help="save feature to pickle")
+
+	args = parser.parse_args()
+	if args.train_doc and args.train_label:
+		train_docs = pickle.load(open(args.train_doc, "rb"))
+		train_labels =  pickle.load(open(args.train_label, "rb"))
+
+		train_docs_as_words = get_docs_as_wordlist(train_docs)
+		real_docs_as_words = get_real_docs(train_docs_as_words, train_labels)
+
+	if args.dev_doc and args.dev_label:
+		dev_docs = pickle.load(open(args.dev_doc, "rb"))
+		dev_labels =  pickle.load(open(args.dev_label, "rb"))
+
+		dev_docs_as_words = get_docs_as_wordlist(dev_docs)
+
+	if args.pred_doc:
+		pred_docs = pickle.load(open(args.pred_doc, "rb"))
+		pred_docs_as_words = get_docs_as_wordlist(pred_docs)
+
+	if args.fparser:
+		ffunc_list.append(feature_reranking_parser_score)
+		dep.update(dependency["fparser"])
+	if args.f43pprt:
+		ffunc_list.append(feature_quad_tri_perplexity_ratio)
+		dep.update(dependency["f43pprt"])
+	if args.fccwp:
+		ffunc_list.append(feature_common_content_word_pairs)
+		dep.update(dependency["fccwp"])
+	if args.fcs:
+		ffunc_list.append(feature_content_and_stopwords)
+		dep.update(dependency["fcs"])
+
+
+	for d in dep:
+		if d == "rrp":
+			rrp = RerankingParser.fetch_and_load('WSJ-PTB3', verbose=True)
+		if d == "unigram":
+			if not isdefined("unigram_count"):
+				unigram_count = get_unigram_count(train_docs_as_words)
+			unigram_log_prob = get_unigram_log_prob(unigram_count)
+		if d == "bigram":
+			if not isdefined("bigram_count"):
+				bigram_count = get_bigram_count(train_docs_as_words)
+			if not isdefined("unigram_count"):
+				unigram_count = get_unigram_count(train_docs_as_words)
+			bigram_log_prob = get_bigram_conditional_log_prob(bigram_count, unigram_count)
+		if d == "trigram":
+			if not isdefined("trigram_count"):
+				trigram_count = get_trigram_count(train_docs_as_words)
+			if not isdefined("bigram_count"):
+				bigram_count = get_bigram_count(train_docs_as_words)
+			trigram_log_prob = get_trigram_conditional_log_prob(trigram_count, bigram_count)
+		if d == "quadgram":
+			if not isdefined("quadgram_count"):
+				quadgram_count = get_quadgram_count(train_docs_as_words)
+			if not isdefined("trigram_count"):
+				trigram_count = get_trigram_count(train_docs_as_words)
+			quadgram_log_prob = get_quadgram_conditional_log_prob(quadgram_count, trigram_count)
+		if d == "cs_words":
+			if not isdefined("unigram_count"):
+				unigram_count = get_unigram_count(train_docs_as_words)
+			content_words, stop_words = get_content_stop_words(unigram_count)
+		if d == "ccw_list":
+			# if not isdefined("content_words"):
+			# 	if isdefined(unigram_count):
+			# 		unigram_count = get_unigram_count(train_docs_as_words)
+			# 	content_words, stop_words = get_content_stop_words(unigram_count)
+			ccw_list = get_common_content_word_pairs(train_docs, real_docs_as_words, content_words, ccw_list_thresh, ccw_list_load)
+
+	
 	feature = []
 
-	for docid, doc, doc_as_words, label in zip(range(len(docs)), docs, docs_as_words, labels):
-		ft = extract_feature(doc, doc_as_words)
+	for docid, doc, doc_as_words, label in zip(range(len(train_docs)), train_docs, train_docs_as_words, train_labels):
+		ft = extract_feature(ffunc_list, doc, doc_as_words)
 		# print ft, label
 		feature.append(ft)
 
 		if docid % 200 == 199:
 			print ft, label
 
-	# # feature = p.map(extract_feature, docs)
-	pickle.dump(feature, open("feature_common_content_pair.pkl", "wb"))
+		if args.fsave:
+			pickle.dump(feature, open("train_"+args.fsave, "wb"))
+
+	dev_feature = []
+	if isdefined("dev_docs"):
+		for docid, doc, doc_as_words, label in zip(range(len(dev_docs)), dev_docs, dev_docs_as_words, dev_labels):
+			ft = extract_feature(ffunc_list, doc, doc_as_words)
+			# print ft, label
+			dev_feature.append(ft)
+
+			if docid % 200 == 199:
+				print ft, label
+
+		if args.fsave:
+			pickle.dump(dev_feature, open("dev_"+args.fsave, "wb"))
+
+	if isdefined("pred_docs"):
+		for docid, doc, doc_as_words in zip(range(len(pred_docs)), pred_docs, pred_docs_as_words):
+			ft = extract_feature(ffunc_list, doc, doc_as_words)
+			# print ft, label
+			dev_feature.append(ft)
+
+			if docid % 200 == 199:
+				print ft, label
+
+		if args.fsave:
+			pickle.dump(dev_feature, open("pred_"+args.fsave, "wb"))
+
+
+
+
+
+
