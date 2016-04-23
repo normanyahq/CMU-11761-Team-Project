@@ -49,6 +49,17 @@ def get_fake_docs(docs, labels):
     return real_docs
 
 
+def get_docs_as_wordlist(docs):
+    new_docs = []
+    for doc in docs:
+        new_doc = []
+        for sent in doc:
+            new_sent = sent.split()
+            new_doc.append(new_sent)
+        new_docs.append(new_doc)
+    return new_docs
+
+
 def cross_validation(model, docs, labels, batch_num):
     '''
     model: class instance inherited from languagemodel
