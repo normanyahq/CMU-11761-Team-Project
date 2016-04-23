@@ -4,7 +4,9 @@ import numpy
 
 global pair_corr_score
 global pair_corr_score_5
-
+global pair_corr_list
+global pair_corr_list_5
+global word_dict
 
 def simple_statistics(doc):
     global pair_corr_score
@@ -37,13 +39,10 @@ def simple_statistics(doc):
 
     return [feature_simple, feature_simple_5]
 
-
-def get_corr(doc):
-    global pair_corr_score
-    global pair_corr_score_5
-
-    pair_corr_score = list()
-    pair_corr_score_5 = list()
+def generate_pairs(doc):
+    global pair_corr_list
+    global pair_corr_list_5
+    global word_dict
 
     pair_corr_list = defaultdict(list())
     pair_corr_list_5 = defaultdict(list())
@@ -74,6 +73,22 @@ def get_corr(doc):
                         pair_corr_list_5[pair] = [sid]
                     else:
                         pair_corr_list_5[pair].append(sid)
+
+    return [pair_corr_list, pair_corr_list_5]
+
+
+def get_corr(doc):
+    global pair_corr_score
+    global pair_corr_score_5
+    global pair_corr_list
+    global pair_corr_list_5
+    global word_dict
+
+    pair_corr_score = list()
+    pair_corr_score_5 = list()
+
+    if len(pair_corr_list) == 0:
+        generate_pairs(doc)
 
     # traverse pair_corr_list to calculate Q statistics
     for pair in pair_corr_list:
