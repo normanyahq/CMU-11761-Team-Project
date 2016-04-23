@@ -163,9 +163,9 @@ def get_prob_skipgram(log_prob_list, words, i):
 			start = max(i-hist_len, 0)
 			k = tuple(words[start:i])
 			# print k, hist_len, start, i
-
+		# print k
 		if k in log_prob:
-			# print k
+			print k
 			return log_prob[k]
 
 	unigram_prob = log_prob_list[-1]
@@ -216,6 +216,7 @@ if __name__ == '__main__':
 	quadgram_log_prob = get_quadgram_conditional_log_prob(quadgram_count, trigram_count)
 	skipgram_log_prob = get_skipgram_conditional_log_prob(trigram_count)
 
-	sent = "YES THERE ARE ABOUT FOUR MINUTES PANELS ANIMALS"
-	words = sent.split()
-	print get_sent_perplexity(words, [quadgram_log_prob, skipgram_log_prob, trigram_log_prob, bigram_log_prob, unigram_log_prob])
+	doc = ["YES THERE ARE ABOUT FOUR MINUTES PANELS ANIMALS", "I HAVE A DREAM"]
+	doc = [s.split() for s in doc]
+	print doc
+	print get_doc_perplexity_skipgram(doc, [skipgram_log_prob, unigram_log_prob])
