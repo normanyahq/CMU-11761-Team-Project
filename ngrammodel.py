@@ -146,7 +146,8 @@ def get_prob(log_prob_list, words, i):
 			# print k
 			return log_prob[k]
 
-	return log_prob_list[-1]['<UNK>']
+	unigram_prob = log_prob_list[-1]
+	return unigram_prob.get('<UNK>', 1./len(unigram_prob))
 
 def get_log_likelihood(sent, log_prob_list):
 	lld = 0
