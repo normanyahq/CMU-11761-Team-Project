@@ -9,8 +9,22 @@ global pair_corr_list_5
 global word_dict
 global unseen_pairs
 
+# functions to call to generate features:
+# 1. feature_simple_statistics(doc):
+#    return: 12 features in two list(each list have 6 features)
+#    this is the function to generate simple statistics about correlation values
+#
+# 2. feature_percentage_corr:
+#    return: 1 feature
+#    this is the function to percentage of correlation values above some threshold
+#
+# 3. feature_unseen_pairs:
+#    return: 2 feature in one list [num of unseen_pairs, percent of unseen pairs]
+#    this is the function to generate the number of unseen pairs and the percent of unseen pairs
+
+
 # this is the function to generate Simple Statistics features
-def simple_statistics(doc):
+def feature_simple_statistics(doc):
     global pair_corr_score
     global pair_corr_score_5
 
@@ -118,7 +132,7 @@ def get_corr(doc):
         pair_corr_score_5.append(q)
 
 # this is to generate the feature of percentage of correlation values above a threshold
-def pencentage_corr(doc, threshold):
+def feature_pencentage_corr(doc, threshold):
     global pair_corr_score
     # global pair_corr_score_5
 
@@ -133,9 +147,9 @@ def pencentage_corr(doc, threshold):
     return float(count) / len(pair_corr_score)
 
 
-def percentage_corr(doc):
+def feature_percentage_corr(doc):
     threshold = 0.3
-    return pencentage_corr(doc, threshold)
+    return feature_pencentage_corr(doc, threshold)
 
 
 # this is to generate the number of unseen pairs and the percent of unseen pairs
