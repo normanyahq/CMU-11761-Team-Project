@@ -21,7 +21,10 @@ global unseen_pairs
 # 3. feature_unseen_pairs:
 #    return: 2 feature in one list [num of unseen_pairs, percent of unseen pairs]
 #    this is the function to generate the number of unseen pairs and the percent of unseen pairs
-
+#
+# 4. feature_repetition:
+#    return: 2 features in one list [percent of repetition, the length of the longest repeated phrase]
+#
 
 # this is the function to generate Simple Statistics features
 def feature_simple_statistics(doc):
@@ -179,5 +182,41 @@ def get_stop_word_list():
         stop_words.append(word)
 
     return stop_words
+
+
+# return: 2 features in one list [percent of repetition, the length of the longest repeated phrase]
+# note: single word are also included as general "phrases"
+def feature_repetition(doc):
+    phrase_list = list()
+    repetition_count = 0
+    max_phrase_length = 0
+    word_length_sum = 0
+
+    for sentence in doc:
+        word_length_sum += len(sentence)
+        for i in range(len(sentence)):
+            phrase = ''
+            for j in range(i, len(sentence)):
+                phrase += sentence[j]
+                if phrase in phrase_list:
+                    repetition_count += 1
+                    # update the length of longest repeated phrase
+                    if len(phrase) > max_phrase_length:
+                        max_phrase_length = len(phrase)
+                else:
+                    phrase_list.append(phrase)
+
+    return [float(repetition_count) / word_length_sum, max_phrase_length]
+
+
+def main():
+    docs, labels = utilities.load_data('./data/dev_text.txt', './data/dev_label.txt')
+    print feature_repetition(docs[0])
+    print feature_repetition(docs[1])
+    print feature_repetition(docs[2])
+
+
+if __name__ == "__main__":
+    main()
 
 
