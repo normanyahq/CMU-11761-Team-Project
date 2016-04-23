@@ -2,11 +2,6 @@ import utilities
 from collections import defaultdict
 import numpy
 
-global pair_corr_score
-global pair_corr_score_5
-global pair_corr_list
-global pair_corr_list_5
-global word_dict
 global unseen_pairs
 
 # functions to call to generate features:
@@ -21,15 +16,18 @@ global unseen_pairs
 # 3. feature_unseen_pairs:
 #    return: 2 feature in one list [num of unseen_pairs, percent of unseen pairs]
 #    this is the function to generate the number of unseen pairs and the percent of unseen pairs
+#
+# 4. feature_repetition:
+#    return: 2 features in one list [percent of repetition, the length of the longest repeated phrase]
 
 
 # this is the function to generate Simple Statistics features
 def feature_simple_statistics(doc):
-    global pair_corr_score
-    global pair_corr_score_5
+    # global pair_corr_score
+    # global pair_corr_score_5
 
-    if len(pair_corr_score) == 0:
-        get_corr(doc)
+    # if pair_corr_score is None:
+    [pair_corr_score, pair_corr_score_5] = get_corr(doc)
 
     # doc is an individual article
     # Simple Statistics(mean, median, maximum, minimum, range and variance) or word pair correlation values
@@ -44,11 +42,19 @@ def feature_simple_statistics(doc):
 
     feature_simple = [mean, median, var, max, min, range]
 
-    mean_5 = numpy.mean(pair_corr_score_5)
-    median_5 = numpy.median(pair_corr_score_5)
-    var_5 = numpy.std(pair_corr_score_5)
-    max_5 = numpy.max(pair_corr_score_5)
-    min_5 = numpy.min(pair_corr_score_5)
+    if len(pair_corr_score_5) == 0:
+        mean_5 = 0.0
+        median_5 = 0.0
+        var_5 = 0.0
+        max_5 = 0.0
+        min_5 = 0.0
+    else:
+        mean_5 = numpy.mean(pair_corr_score_5)
+        median_5 = numpy.median(pair_corr_score_5)
+        var_5 = numpy.std(pair_corr_score_5)
+        max_5 = numpy.max(pair_corr_score_5)
+        min_5 = numpy.min(pair_corr_score_5)
+
     range_5 = max_5 - min_5
 
     feature_simple_5 = [mean_5, median_5, var_5, max_5, min_5, range_5]
@@ -58,31 +64,39 @@ def feature_simple_statistics(doc):
 # this is the function to generate word pairs in a doc
 # return 1. all word pairs 2. words pairs have distance >= 5
 def generate_pairs(doc):
-    global pair_corr_list
-    global pair_corr_list_5
-    global word_dict
+    # global pair_corr_list
+    # global pair_corr_list_5
+    # global word_dict
     global unseen_pairs
 
     unseen_pairs = 0
-    pair_corr_list = defaultdict(list())
-    pair_corr_list_5 = defaultdict(list())
+    pair_corr_list = defaultdict(list)
+    pair_corr_list_5 = defaultdict(list)
     # list = (sid1, sid2, ..., sidn)
 
-    word_dict = defaultdict(list())
+    word_dict = defaultdict(list)
     # word_dict[word] is the occurence list of word in the whole doc
 
     # generate pairs list
     for sid in range(len(doc)):
-        sentence = doc[sid]
+        sentence = doc[sid].split(' ')
         for i in range(len(sentence)):
             word = sentence[i]
+            if word == ' ' or word == '':
+                continue
+
             if word not in word_dict:
                 word_dict[word] = [sid]
             else:
                 word_dict[word].append(sid)
 
             for j in range(i + 1, len(sentence)):
-                pair = [sentence[i], sentence[j]]
+                if sentence[j] == ' ' or sentence[j] == '' or sentence[j] == sentence[i]:
+                    continue
+                if sentence[i] <= sentence[j]:
+                    pair = str(sentence[i]) + ' ' + str(sentence[j])
+                else:
+                    pair = str(sentence[j]) + ' ' + str(sentence[i])
 
                 if pair not in pair_corr_list:
                     pair_corr_list[pair] = [sid]
@@ -95,49 +109,56 @@ def generate_pairs(doc):
                     else:
                         pair_corr_list_5[pair].append(sid)
 
-    return [pair_corr_list, pair_corr_list_5]
+    return [pair_corr_list, pair_corr_list_5, word_dict]
+
 
 # this is the funciton to get the correlation value of word pairs
 # return two score lists
 def get_corr(doc):
-    global pair_corr_score
-    global pair_corr_score_5
-    global pair_corr_list
-    global pair_corr_list_5
-    global word_dict
+    # global pair_corr_score
+    # global pair_corr_score_5
+    # global pair_corr_list
+    # global pair_corr_list_5
+    # global word_dict
 
     pair_corr_score = list()
     pair_corr_score_5 = list()
 
-    if len(pair_corr_list) == 0:
-        generate_pairs(doc)
+    # if pair_corr_list is None:
+    [pair_corr_list, pair_corr_list_5, word_dict] = generate_pairs(doc)
 
     # traverse pair_corr_list to calculate Q statistics
     for pair in pair_corr_list:
         pair_matrix = pair_corr_list[pair]
         c11 = len(set(pair_matrix))
-        c12 = len(set(word_dict[pair[0]])) - c11
-        c21 = len(set(word_dict[pair[1]])) - c11
+        c12 = len(set(word_dict[pair.split(' ')[0]])) - c11
+        c21 = len(set(word_dict[pair.split(' ')[1]])) - c11
         c22 = len(doc) - c11 - c12 - c21
-        q = (c11 * c22 - c12 * c21) / (c11 * c22 + c12 * c21)
+        q = float(c11 * c22 - c12 * c21) / (c11 * c22 + c12 * c21)
+        # if q < -1:
+        #     print "whoops"
         pair_corr_score.append(q)
 
     for pair in pair_corr_list_5:
         pair_matrix = pair_corr_list_5[pair]
         c11 = len(set(pair_matrix))
-        c12 = len(set(word_dict[pair[0]])) - c11
-        c21 = len(set(word_dict[pair[1]])) - c11
+        c12 = len(set(word_dict[pair.split(' ')[0]])) - c11
+        c21 = len(set(word_dict[pair.split(' ')[1]])) - c11
         c22 = len(doc) - c11 - c12 - c21
-        q = (c11 * c22 - c12 * c21) / (c11 * c22 + c12 * c21)
+        q = float(c11 * c22 - c12 * c21) / (c11 * c22 + c12 * c21)
+        # if q < -1:
+        #     print "whoops"
         pair_corr_score_5.append(q)
+
+    return [pair_corr_score, pair_corr_score_5]
 
 # this is to generate the feature of percentage of correlation values above a threshold
 def feature_pencentage_corr(doc, threshold):
     global pair_corr_score
     # global pair_corr_score_5
 
-    if len(pair_corr_score) == 0:
-        get_corr(doc)
+    # if pair_corr_score is None:
+    get_corr(doc)
 
     count = 0
     for q in pair_corr_score:
@@ -158,8 +179,8 @@ def feature_unseen_pairs(doc):
     global unseen_pairs
     global pair_corr_list
 
-    if len(pair_corr_list) == 0:
-        generate_pairs(doc)
+    # if pair_corr_list is None:
+    generate_pairs(doc)
 
     pairs_sum = 0
     for sentence in doc:
@@ -179,5 +200,49 @@ def get_stop_word_list():
         stop_words.append(word)
 
     return stop_words
+
+
+# return: 2 features in one list [percent of repetition, the length of the longest repeated phrase]
+# note: single word are also included as general "phrases"
+def feature_repetition(doc):
+    phrase_list = list()
+    repetition_count = 0
+    max_phrase_length = 0
+    word_length_sum = 0
+
+    for sentence in doc:
+        sentence = sentence.split(' ')
+        word_length_sum += len(sentence)
+        for i in range(len(sentence)):
+            phrase = ''
+            for j in range(i, len(sentence)):
+                phrase += ' ' + sentence[j]
+                if phrase in phrase_list:
+                    repetition_count += 1
+                    # update the length of longest repeated phrase
+                    if len(phrase) > max_phrase_length:
+                        max_phrase_length = len(phrase)
+                else:
+                    phrase_list.append(phrase)
+
+    return [float(repetition_count) / word_length_sum, max_phrase_length]
+
+
+def main():
+    docs, labels = utilities.load_data('./data/dev_text.txt', './data/dev_label.txt')
+    last = len(docs) - 1
+    for i in range(len(docs)):
+        print i
+    #     # print feature_simple_statistics(docs[i])
+    #     # print feature_unseen_pairs(docs[i])
+    #     print feature_repetition(docs[i])
+        print feature_unseen_pairs(docs[i])
+    # print feature_repetition(docs[199])
+    # print feature_simple_statistics(docs[62])
+    # print feature_simple_statistics(docs[last])
+
+
+if __name__ == "__main__":
+    main()
 
 
