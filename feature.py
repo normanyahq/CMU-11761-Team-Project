@@ -71,46 +71,58 @@ def get_content_words(unigram_count):
 	print "Content Words Done ..."
 	return Set(content_words)
 
-def get_common_content_word_pairs(docs, real_docs_as_words, content_words, thresh=10):
-	print "get_common_content_word_pairs ..."	
-	cw_cnt_dict = {}
-	for docid in range(len(docs)):
-		doc = docs[docid]
+def get_common_content_word_pairs(docs, real_docs_as_words, content_words, thresh=90):
+	# print "get_common_content_word_pairs ..."	
+	# cw_cnt_dict = {}
+	# cw_instance_cnt = 0
+	# for docid in range(len(docs)):
+	# 	doc = docs[docid]
 		
-		[pair_corr_list, pair_corr_list_5, word_dict] = generate_pairs(doc)
-		for pair in pair_corr_list_5:
-			words = pair.split()
-			if words[0] in content_words and words[1] in content_words:
-				if pair in cw_cnt_dict:
-					cw_cnt_dict[pair] += 1
-				else:
-					cw_cnt_dict[pair] = 1
+	# 	[pair_corr_list, pair_corr_list_5, word_dict] = generate_pairs(doc)
+	# 	for pair in pair_corr_list_5:
+	# 		words = pair.split()
+	# 		if words[0] in content_words and words[1] in content_words:
+	# 			cw_instance_cnt += 1
+	# 			if pair in cw_cnt_dict:
+	# 				cw_cnt_dict[pair] += 1
+	# 			else:
+	# 				cw_cnt_dict[pair] = 1
 
-		if docid % 200 == 199:
-			print "doc", docid
+	# 	if docid % 200 == 199:
+	# 		print "doc", docid
+	# pickle.dump(cw_cnt_dict, open("cw_cnt_dict.pkl", "wb"))
+
+	cw_cnt_dict = pickle.load(open("cw_cnt_dict.pkl", "rb"))
 	# sorted_x = sorted(cw_cnt_dict.items(), key=operator.itemgetter(1))
 	# for x in sorted_x:
 	# 	print x
+
+	cw_cnt_list = np.array(cw_cnt_dict.values())
+	thresh_val = np.percentile( cw_cnt_list,thresh)
+	print "common_content_word_pairs Using Thresh Val:", thresh_val
 	ccw_cnt_dict = {}
 	for pair in cw_cnt_dict:
-		if cw_cnt_dict[pair] > thresh:
+		if cw_cnt_dict[pair] > thresh_val:
 			ccw_cnt_dict[pair] = cw_cnt_dict[pair]
-
 
 	return Set(ccw_cnt_dict.keys())
 	
 def feature_common_content_word_pairs(doc, ccw_list):
-	ccw_cnt  = 0
+	ccw_cnt  = 0.0
 	# print le n(doc)
 	[pair_corr_list, pair_corr_list_5, word_dict] = generate_pairs(doc)
+
+	pair_cnt = sum([len(pair_corr_list[p]) for p in pair_corr_list ])
+	if pair_cnt < 1:
+		print "Too short doc ..."
+		return 0
+
 	# print "generate_pairs done ..."
 	for pair in pair_corr_list_5:
 		if pair in ccw_list:
 			ccw_cnt += len(pair_corr_list_5[pair])
 			# print len(pair_corr_list_5[pair])
-	pair_cnt = np.sum([len(pair_corr_list[p]) for p in pair_corr_list ])
-
-	return ccw_cnt/pair_cnt
+	return 1.0 * ccw_cnt/pair_cnt
 
 def extract_feature(doc, docs_as_words):
 	# res = feature_reranking_parser_score(doc)
@@ -143,14 +155,18 @@ if __name__ == '__main__':
 	# trigram_log_prob = get_trigram_conditional_log_prob(trigram_count, bigram_count)
 	# quadgram_log_prob = get_quadgram_conditional_log_prob(quadgram_count, trigram_count)
 	content_words = get_content_words(unigram_count)
-	ccw_list = get_common_content_word_pairs(docs, real_docs_as_words, content_words, 4)
-	pickle.dump(ccw_list, open("ccw_list.pkl","wb"))
-	ccw_list = pickle.load(open("ccw_list.pkl","rb"))
+	ccw_list = get_common_content_word_pairs(docs, real_docs_as_words, content_words, 99)
+	# pickle.dump(ccw_list, open("ccw_list.pkl","wb"))
+	# ccw_list = pickle.load(open("ccw_list.pkl","rb"))
 	feature = []
-	for doc, doc_as_words, label in zip(docs, docs_as_words, labels):
+
+	for docid, doc, doc_as_words, label in zip(range(len(docs)), docs, docs_as_words, labels):
 		ft = extract_feature(doc, doc_as_words)
-		print ft, label
+		# print ft, label
 		feature.append(ft)
+
+		if docid % 200 == 199:
+			print ft, label
 
 	# # feature = p.map(extract_feature, docs)
 	pickle.dump(feature, open("feature_common_content_pair.pkl", "wb"))
