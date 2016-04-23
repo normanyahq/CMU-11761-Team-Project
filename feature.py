@@ -86,7 +86,7 @@ def get_common_content_word_pairs(docs, real_docs_as_words, content_words, thres
 				else:
 					cw_cnt_dict[pair] = 1
 
-		if docid % 50 == 49:
+		if docid % 200 == 199:
 			print "doc", docid
 	# sorted_x = sorted(cw_cnt_dict.items(), key=operator.itemgetter(1))
 	# for x in sorted_x:
@@ -103,7 +103,7 @@ def feature_common_content_word_pairs(doc, ccw_list):
 	ccw_cnt  = 0
 	# print le n(doc)
 	[pair_corr_list, pair_corr_list_5, word_dict] = generate_pairs(doc)
-	print "generate_pairs done ..."
+	# print "generate_pairs done ..."
 	for pair in pair_corr_list_5:
 		if pair in ccw_list:
 			ccw_cnt += len(pair_corr_list_5[pair])
@@ -121,14 +121,15 @@ def extract_feature(doc, docs_as_words):
 
 
 	res = feature_common_content_word_pairs(doc, ccw_list)
-	print res
 	return res
 
 if __name__ == '__main__':
 	# rrp = RerankingParser.fetch_and_load('WSJ-PTB3', verbose=True)
 	p = Pool(10)
 
-	docs, labels = load_data("data/train_text.txt", "data/train_label.txt")
+	#docs, labels = load_data("data/train_text.txt", "data/train_label.txt")
+	docs = pickle.load(open('trun_doc.pkl'))
+	labels = pickle.load(open('trun_label.pkl'))
 	docs_as_words = get_docs_as_wordlist(docs)
 	real_docs_as_words = get_real_docs(docs_as_words, labels)
 
@@ -146,9 +147,10 @@ if __name__ == '__main__':
 	pickle.dump(ccw_list, open("ccw_list.pkl","wb"))
 	ccw_list = pickle.load(open("ccw_list.pkl","rb"))
 	feature = []
-	for doc, doc_as_words in zip(docs, docs_as_words):
-		# extract_feature(doc, doc_as_words)
-		feature.append(extract_feature(doc, doc_as_words))
+	for doc, doc_as_words, label in zip(docs, docs_as_words, labels):
+		ft = extract_feature(doc, doc_as_words)
+		print ft, label
+		feature.append(ft)
 
 	# # feature = p.map(extract_feature, docs)
-	# pickle.dump(feature, open("feature_perp_ratio.pkl", "wb"))
+	pickle.dump(feature, open("feature_common_content_pair.pkl", "wb"))
