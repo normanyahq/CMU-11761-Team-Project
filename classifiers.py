@@ -4,7 +4,7 @@ import random
 from utilities import logging
 from sklearn import preprocessing
 import numpy as np
-
+from matplotlib import pyplot as plt
 class classify(LanguageModel):
 
     def save_model(self, model_file_name):
@@ -41,8 +41,24 @@ class classify(LanguageModel):
         '''
         newly added scaling
         '''
-        features = preprocessing.scale(np.array([[1.0,1.0],[1.0,-1.0],[-1.0,1.0],[-1.0,-1.0]]))
-        labels = np.array([1,1,0,0])
+        features = pickle.load(open('feature_all_train.pkl'))
+        
+        features = [[x] for x in features] #!!!!!ONLY USED FOR SINGLE FEATURE
+        labels = pickle.load(open('trun_label.pkl'))
+        features = np.array(features)#preprocessing.scale(np.array(features))
+        labels = np.array(labels)
+        #labels = np.array([1,1,0,0])
+        real_feature = []
+        fake_feature = []
+        for i in range(len(labels)):
+            if labels[i] == 1:
+                real_feature.append(features[i][0])
+            else:
+                fake_feature.append(features[i][0])
+        plt.figure()
+        plt.hist(real_feature)
+        plt.hist(fake_feature)
+        plt.show()
         logging('start training...')
         if self.model == 'logit': # logistic regression
             self.train_logit(features,labels)
@@ -68,16 +84,25 @@ class classify(LanguageModel):
         '''
         # try to use ensemble of different classifiers
         #features = doc2feature([doc])
-        features = preprocessing.scale(np.array([[2.0,0.0],[-4,1]]))
-        print "features",features
-        print "mean",features.mean(axis=0)
-        print "std",features.std(axis=0)
+        features = pickle.load(open('feature_all_dev.pkl'))
+        labels = []
+        for line in open('./data/dev_label.txt'):
+            labels.append(int(line.strip()))
+
+        features = [[x] for x in features]
+        features = np.array(features)
         predictions = self.model_obj.predict(features) # [[label]]
         probas = self.model_obj.predict_proba(features) # [[p0,p1]]
-        print probas
+        #print probas
         # probas for svm is different with training result, which is obtained by cv
         # it's also meaningless on small dataset
-        print probas[0][0],probas[0][1],predictions[0]
+        #print probas[0][0],probas[0][1],predictions[0]
+        print predictions
+        correct = 0
+        for i in range(len(predictions)):
+            if labels[i] == predictions[i]:
+                correct += 1
+        print correct * 1.0/len(predictions)
         return
 
     def train_logit(self,features,labels):
