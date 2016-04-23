@@ -144,27 +144,32 @@ def get_prob(log_prob_list, words, i):
 	unigram_prob = log_prob_list[-1]
 	return unigram_prob.get('<UNK>', 1./len(unigram_prob))
 
-# def get_prob_skipgram(log_prob_list, words, i):
-# 	'''Back-off model, the last one must be unigram model with <UNK> vocab'''
-# 	if i > 0 and tuple()
-# 	for log_prob_ind in range(1, len(log_prob_list)):
-# 		log_prob = log_prob_list[log_prob_ind]
-# 		element = iter(log_prob).next()
-# 		if type(element) == str:
-# 			k = words[i-1]
-# 			# print 1
-# 		else:
-# 			hist_len = len(element)
-# 			start = max(i-hist_len, 0)
-# 			k = tuple(words[start:i])
-# 			# print k, hist_len, start, i
+def get_prob_skipgram(log_prob_list, words, i):
+	'''Back-off model, the last one must be unigram model with <UNK> vocab'''
+	if i > 0: 
+		k = tuple(words[i-2:i+1])
+		if k in log_prob_list[0]:
+			print k
+			return log_prob_list[0][k]
 
-# 		if k in log_prob:
-# 			# print k
-# 			return log_prob[k]
+	for log_prob_ind in range(1, len(log_prob_list)):
+		log_prob = log_prob_list[log_prob_ind]
+		element = iter(log_prob).next()
+		if type(element) == str:
+			k = words[i-1]
+			# print 1
+		else:
+			hist_len = len(element)
+			start = max(i-hist_len, 0)
+			k = tuple(words[start:i])
+			# print k, hist_len, start, i
 
-# 	unigram_prob = log_prob_list[-1]
-# 	return unigram_prob.get('<UNK>', 1./len(unigram_prob))
+		if k in log_prob:
+			# print k
+			return log_prob[k]
+
+	unigram_prob = log_prob_list[-1]
+	return unigram_prob.get('<UNK>', 1./len(unigram_prob))
 
 def get_log_likelihood(words, log_prob_list):
 	lld = 0
