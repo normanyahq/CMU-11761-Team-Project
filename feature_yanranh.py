@@ -22,7 +22,7 @@ global unseen_pairs
 #    return: 2 features in one list [percent of repetition, the length of the longest repeated phrase]
 # 5. def feature_ratio_content_stop:
 #    return: 1 feature
-#    this is the ratio of content words and stop words (ratio_content_stop = #content_words / #stop_words)
+#    this is the ratio of content words and stop words (ratio_content_stop = #stop_words / #content_words)
 #
 
 # this is the function to generate Simple Statistics features
@@ -200,7 +200,7 @@ def get_stop_word_list():
     stop_words = list()
 
     for line in data:
-        word = line.replace("\n", "")
+        word = line.replace("\n", "").upper()
         stop_words.append(word)
 
     return stop_words
@@ -232,7 +232,9 @@ def feature_repetition(doc):
     return [float(repetition_count) / word_length_sum, max_phrase_length]
 
 
-def feature_ratio_content_stop(doc):
+#    return: 1 feature
+#    this is the ratio of content words and stop words (ratio_content_stop = #stop_words / #content_words)
+def feature_ratio_stop_content(doc):
     stop_words = get_stop_word_list()
     content_words = pickle.load(open("content_words.pkl", "rb"))
     stop_words_count = 0
@@ -247,17 +249,18 @@ def feature_ratio_content_stop(doc):
             if word in content_words:
                 content_words_count += 1
 
-    ratio_content_stop = float(content_words_count) / stop_words_count
-    return ratio_content_stop
+    ratio_stop_content = float(stop_words_count) / content_words_count
+    return ratio_stop_content
 
 
 
 def main():
-    docs, labels = utilities.load_data('./data/train_text.txt', './data/train_label.txt')
+    docs, labels = utilities.load_data('./data/dev_text.txt', './data/dev_label.txt')
     last = len(docs) - 1
     for i in range(len(docs)):
         print i
-        print feature_simple_statistics(docs[i])
+        print feature_ratio_stop_content(docs[i])
+        # print feature_simple_statistics(docs[i])
         # print feature_unseen_pairs(docs[i])
     #     print feature_repetition(docs[i])
     #     print feature_unseen_pairs(docs[i])
