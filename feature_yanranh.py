@@ -5,6 +5,7 @@ import pickle
 import truncatedocs
 import datetime
 import numpy as np
+import scipy.spatial as sci
 
 global unseen_pairs
 
@@ -185,16 +186,14 @@ def get_corr(doc):
 
 # this is to generate the feature of percentage of correlation values above a threshold
 def feature_pencentage_corr(doc, threshold):
-    global pair_corr_score
-    # global pair_corr_score_5
-
-    # if pair_corr_score is None:
-    get_corr(doc)
+    [pair_corr_score, pair_corr_score_5] = get_corr(doc)
 
     count = 0
     for q in pair_corr_score:
         if q >= threshold:
             count += 1
+    if len(pair_corr_score) == 0:
+        return 0.0
 
     return float(count) / len(pair_corr_score)
 
@@ -208,7 +207,6 @@ def feature_percentage_corr(doc, parameter):
 # return [num of unseen_pairs, percent of unseen pairs]
 def feature_unseen_pairs(doc, parameter):
     global unseen_pairs
-    global pair_corr_list
 
     # if pair_corr_list is None:
     generate_pairs(doc)
@@ -351,7 +349,14 @@ def feature_topical_redundancy(doc, parameter):
     a_new = np.dot(U, s)
     a_new = np.dot(a_new, V)
 
-    return np.linalg.det(a - a_new)
+    loss = 0
+    for i in range(len(a)):
+        loss += sci.distance.euclidean(a_new[i], a[i])
+
+    loss /= len(a)
+
+    # return np.linalg.det(a - a_new)
+    return loss
 
 
 def main():
@@ -368,12 +373,13 @@ def main():
     for i in range(len(docs)):
         print i
         print feature_topical_redundancy(docs[i], 0)
-    # #     # print feature_coherence_score(docs[i])
-    #     print feature_ratio_stop_content(docs[i])
-    #     print feature_simple_statistics(docs[i])
-    #     # print feature_unseen_pairs(docs[i])
-    #     print feature_repetition(docs[i])
-    #     print feature_unseen_pairs(docs[i])
+        print feature_coherence_score(docs[i], 0)
+        print feature_ratio_content_stop(docs[i], 0)
+        print feature_simple_statistics(docs[i], 0)
+        print feature_unseen_pairs(docs[i], 0)
+        print feature_repetition(docs[i], 0)
+        print feature_percentage_corr(docs[i], 0)
+
 
     te = datetime.datetime.now()
     print te - ts
