@@ -3,6 +3,8 @@ from collections import defaultdict
 import numpy
 import pickle
 import truncatedocs
+import datetime
+import numpy as np
 
 global unseen_pairs
 
@@ -32,7 +34,7 @@ global unseen_pairs
 
 
 # this is the function to generate Simple Statistics features
-def feature_simple_statistics(doc):
+def feature_simple_statistics(doc, parameter):
     # global pair_corr_score
     # global pair_corr_score_5
 
@@ -75,7 +77,7 @@ def feature_simple_statistics(doc):
     range_5 = max_5 - min_5
 
     feature_simple_5 = [mean_5, median_5, var_5, max_5, min_5, range_5]
-    
+
     return [feature_simple, feature_simple_5]
 
 
@@ -193,14 +195,14 @@ def feature_pencentage_corr(doc, threshold):
     return float(count) / len(pair_corr_score)
 
 
-def feature_percentage_corr(doc):
+def feature_percentage_corr(doc, parameter):
     threshold = 0.3
     return feature_pencentage_corr(doc, threshold)
 
 
 # this is to generate the number of unseen pairs and the percent of unseen pairs
 # return [num of unseen_pairs, percent of unseen pairs]
-def feature_unseen_pairs(doc):
+def feature_unseen_pairs(doc, parameter):
     global unseen_pairs
     global pair_corr_list
 
@@ -229,7 +231,7 @@ def get_stop_word_list():
 
 # return: 2 features in one list [percent of repetition, the length of the longest repeated phrase]
 # note: single word are also included as general "phrases"
-def feature_repetition(doc):
+def feature_repetition(doc, parameter):
     phrase_list = list()
     repetition_count = 0
     max_phrase_length = 0
@@ -255,7 +257,7 @@ def feature_repetition(doc):
 
 #    return: 1 feature
 #    this is the ratio of content words and stop words (ratio_content_stop = #stop_words / #content_words)
-def feature_ratio_stop_content(doc):
+def feature_ratio_content_stop(doc, parameter):
     stop_words = get_stop_word_list()
     content_words = pickle.load(open("content_words.pkl", "rb"))
     stop_words_count = 0
@@ -268,12 +270,14 @@ def feature_ratio_stop_content(doc):
                 stop_words_count += 1
             if word in content_words:
                 content_words_count += 1
-
-    ratio_stop_content = float(stop_words_count) / content_words_count
+    if stop_words_count == 0:
+        ratio_stop_content = 0
+    else:
+        ratio_stop_content = float(stop_words_count) / content_words_count
     return ratio_stop_content
 
 
-def feature_coherence_score(doc):
+def feature_coherence_score(doc, parameter):
     common_content_word_pair_count = pickle.load(open("common_content_word_pair_count.pkl", "rb"))
     [pair_corr_list, pair_corr_list_5, word_dict] = generate_pairs(doc)
     [pair_corr_score, pair_corr_score_5] = get_corr(doc)
@@ -309,7 +313,27 @@ def feature_coherence_score(doc):
     return [avg_corr, avg_corr_5]
 
 
-# def feature_topical_redundancy(doc):
+def feature_topical_redundancy(doc, parameter):
+    word_list = defaultdict(int)
+    matrix_d = list()
+    sen_len = len(doc)
+
+    for i in range(len(doc)):
+        sentence = doc[i].split(' ')
+        for j in range(len(sentence)):
+            word = sentence[j]
+            if word == '':
+                continue
+            if word in word_list:
+                matrix_d[word_list[word]][i] += 1
+            else:
+                word_list[word] = len(word_list)
+                matrix_d.append([0] * sen_len)
+                matrix_d[word_list[word]][i] += 1
+
+
+
+    # print word_list
 
 
 
@@ -318,17 +342,24 @@ def main():
     # docs, labels = truncatedocs.truncate_docs(docs, labels)
     docs = pickle.load(open("trun_doc.pkl", "rb"))
     last = len(docs) - 1
-    for i in range(len(docs)):
-        print i
-        # print feature_coherence_score(docs[i])
-        # print feature_ratio_stop_content(docs[i])
-        print feature_simple_statistics(docs[i])
-        # print feature_unseen_pairs(docs[i])
+
+    ts = datetime.datetime.now()
+    # print docs[0]
+    # feature_topical_redundancy(docs[0])
+    # for i in range(len(docs)):
+    #     print i
+    # #     # print feature_coherence_score(docs[i])
+    #     print feature_ratio_stop_content(docs[i])
+    #     print feature_simple_statistics(docs[i])
+    #     # print feature_unseen_pairs(docs[i])
     #     print feature_repetition(docs[i])
     #     print feature_unseen_pairs(docs[i])
     # print feature_repetition(docs[199])
     # print feature_simple_statistics(docs[62])
     # print feature_simple_statistics(docs[last])
+    print feature_ratio_content_stop(docs[75])
+    te = datetime.datetime.now()
+    print te - ts
 
 
 if __name__ == "__main__":
