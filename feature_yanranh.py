@@ -31,6 +31,10 @@ global unseen_pairs
 # 6. feature_coherence_score:
 #    return: 2 features in one list [coherence_score_all_pairs, cohrence_score_distant_pairs]
 #    this return the coherence score of each doc(all pairs and only distant pairs(>=5))
+#
+# 7. feature_topical_redundancy:
+#    return: 1 feature
+#    this function returns the modeling topical redundancy(inter-sentence coherence)
 
 
 # this is the function to generate Simple Statistics features
@@ -277,6 +281,8 @@ def feature_ratio_content_stop(doc, parameter):
     return ratio_stop_content
 
 
+#   return: 2 features in one list [coherence_score_all_pairs, cohrence_score_distant_pairs]
+#    this return the coherence score of each doc(all pairs and only distant pairs(>=5))
 def feature_coherence_score(doc, parameter):
     common_content_word_pair_count = pickle.load(open("common_content_word_pair_count.pkl", "rb"))
     [pair_corr_list, pair_corr_list_5, word_dict] = generate_pairs(doc)
@@ -313,10 +319,13 @@ def feature_coherence_score(doc, parameter):
     return [avg_corr, avg_corr_5]
 
 
+#   return: 1 feature
+#   this function returns the modeling topical redundancy(inter-sentence coherence)
 def feature_topical_redundancy(doc, parameter):
     word_list = defaultdict(int)
     matrix_d = list()
     sen_len = len(doc)
+    k = 3
 
     for i in range(len(doc)):
         sentence = doc[i].split(' ')
@@ -330,11 +339,19 @@ def feature_topical_redundancy(doc, parameter):
                 word_list[word] = len(word_list)
                 matrix_d.append([0] * sen_len)
                 matrix_d[word_list[word]][i] += 1
+    d = np.asarray(matrix_d)
+    a = np.dot(d.transpose(), d)
+    U, s, V = np.linalg.svd(a, full_matrices=False)
 
+    # print s
+    # truncate s
+    for i in range(k, len(doc)):
+        s[i] = 0
+    s = np.diag(s)
+    a_new = np.dot(U, s)
+    a_new = np.dot(a_new, V)
 
-
-    # print word_list
-
+    return np.linalg.det(a - a_new)
 
 
 def main():
@@ -345,19 +362,16 @@ def main():
 
     ts = datetime.datetime.now()
     # print docs[0]
-    # feature_topical_redundancy(docs[0])
-    # for i in range(len(docs)):
-    #     print i
+    for i in range(len(docs)):
+        print i
+        print feature_topical_redundancy(docs[i], 0)
     # #     # print feature_coherence_score(docs[i])
     #     print feature_ratio_stop_content(docs[i])
     #     print feature_simple_statistics(docs[i])
     #     # print feature_unseen_pairs(docs[i])
     #     print feature_repetition(docs[i])
     #     print feature_unseen_pairs(docs[i])
-    # print feature_repetition(docs[199])
-    # print feature_simple_statistics(docs[62])
-    # print feature_simple_statistics(docs[last])
-    print feature_ratio_content_stop(docs[75])
+
     te = datetime.datetime.now()
     print te - ts
 
