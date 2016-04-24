@@ -19,7 +19,7 @@ num_sent  weight
 import random
 
 # sentence length = 1 has double weight than others, so
-# here's a trick for random.choice.
+# here's a trick for random.choice
 num_sentence_list = [1, 1, 2, 3, 4, 5, 7, 10, 15, 20]
 
 
