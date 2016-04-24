@@ -270,7 +270,7 @@ def feature_ratio_content_stop(doc, parameter):
                 stop_words_count += 1
             if word in content_words:
                 content_words_count += 1
-    if stop_words_count == 0:
+    if content_words_count == 0:
         ratio_stop_content = 0
     else:
         ratio_stop_content = float(stop_words_count) / content_words_count
