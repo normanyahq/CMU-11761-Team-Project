@@ -262,7 +262,7 @@ def feature_repetition(doc, parameter):
 #    return: 1 feature
 #    this is the ratio of content words and stop words (ratio_content_stop = #stop_words / #content_words)
 def feature_ratio_content_stop(doc, parameter):
-    stop_words = get_stop_word_list()
+    stop_words = pickle.load(open("stop_words_list.pkl", "rb"))
     content_words = pickle.load(open("content_words.pkl", "rb"))
     stop_words_count = 0
     content_words_count = 0
@@ -357,6 +357,9 @@ def feature_topical_redundancy(doc, parameter):
 def main():
     # docs, labels = utilities.load_data('./data/train_text.txt', './data/train_label.txt')
     # docs, labels = truncatedocs.truncate_docs(docs, labels)
+    # stop_words = get_stop_word_list()
+    # pickle.dump(stop_words, open("stop_words_list.pkl", "wb"))
+
     docs = pickle.load(open("trun_doc.pkl", "rb"))
     last = len(docs) - 1
 

@@ -86,7 +86,11 @@ def get_common_content_word_pairs(docs, real_docs_as_words, content_words, thres
 
 			if docid % 200 == 199:
 				print "doc", docid
-		pickle.dump(cw_cnt_dict, open("cw_cnt_dict.pkl", "wb"))
+
+
+
+
+
 
 	# sorted_x = sorted(cw_cnt_dict.items(), key=operator.itemgetter(1))
 	# for x in sorted_x:
