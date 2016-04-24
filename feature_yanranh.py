@@ -2,6 +2,7 @@ import utilities
 from collections import defaultdict
 import numpy
 import pickle
+import truncatedocs
 
 global unseen_pairs
 
@@ -31,7 +32,7 @@ global unseen_pairs
 
 
 # this is the function to generate Simple Statistics features
-def feature_simple_statistics(doc,doc_as_words):
+def feature_simple_statistics(doc):
     # global pair_corr_score
     # global pair_corr_score_5
 
@@ -41,12 +42,19 @@ def feature_simple_statistics(doc,doc_as_words):
     # doc is an individual article
     # Simple Statistics(mean, median, maximum, minimum, range and variance) or word pair correlation values
     # Statistic considering all word pairs & only pairs have distance at least 5 words
+    if len(pair_corr_score_5) == 0:
+        mean = 0.0
+        median = 0.0
+        var = 0.0
+        max = 0.0
+        min = 0.0
+    else:
+        mean = numpy.mean(pair_corr_score)
+        median = numpy.median(pair_corr_score)
+        var = numpy.std(pair_corr_score)
+        max = numpy.max(pair_corr_score)
+        min = numpy.min(pair_corr_score)
 
-    mean = numpy.mean(pair_corr_score)
-    median = numpy.median(pair_corr_score)
-    var = numpy.std(pair_corr_score)
-    max = numpy.max(pair_corr_score)
-    min = numpy.min(pair_corr_score)
     range = max - min
 
     feature_simple = [mean, median, var, max, min, range]
@@ -67,7 +75,7 @@ def feature_simple_statistics(doc,doc_as_words):
     range_5 = max_5 - min_5
 
     feature_simple_5 = [mean_5, median_5, var_5, max_5, min_5, range_5]
-
+    
     return [feature_simple, feature_simple_5]
 
 
@@ -185,14 +193,14 @@ def feature_pencentage_corr(doc, threshold):
     return float(count) / len(pair_corr_score)
 
 
-def feature_percentage_corr(doc,doc_as_words):
+def feature_percentage_corr(doc):
     threshold = 0.3
     return feature_pencentage_corr(doc, threshold)
 
 
 # this is to generate the number of unseen pairs and the percent of unseen pairs
 # return [num of unseen_pairs, percent of unseen pairs]
-def feature_unseen_pairs(doc,doc_as_words):
+def feature_unseen_pairs(doc):
     global unseen_pairs
     global pair_corr_list
 
@@ -221,7 +229,7 @@ def get_stop_word_list():
 
 # return: 2 features in one list [percent of repetition, the length of the longest repeated phrase]
 # note: single word are also included as general "phrases"
-def feature_repetition(doc,doc_as_words):
+def feature_repetition(doc):
     phrase_list = list()
     repetition_count = 0
     max_phrase_length = 0
@@ -247,7 +255,7 @@ def feature_repetition(doc,doc_as_words):
 
 #    return: 1 feature
 #    this is the ratio of content words and stop words (ratio_content_stop = #stop_words / #content_words)
-def feature_ratio_content_stop(doc,doc_as_words):
+def feature_ratio_stop_content(doc):
     stop_words = get_stop_word_list()
     content_words = pickle.load(open("content_words.pkl", "rb"))
     stop_words_count = 0
@@ -265,7 +273,7 @@ def feature_ratio_content_stop(doc,doc_as_words):
     return ratio_stop_content
 
 
-def feature_coherence_score(doc,doc_as_words):
+def feature_coherence_score(doc):
     common_content_word_pair_count = pickle.load(open("common_content_word_pair_count.pkl", "rb"))
     [pair_corr_list, pair_corr_list_5, word_dict] = generate_pairs(doc)
     [pair_corr_score, pair_corr_score_5] = get_corr(doc)
@@ -301,16 +309,20 @@ def feature_coherence_score(doc,doc_as_words):
     return [avg_corr, avg_corr_5]
 
 
+# def feature_topical_redundancy(doc):
+
 
 
 def main():
-    docs, labels = utilities.load_data('./data/train_text.txt', './data/train_label.txt')
+    # docs, labels = utilities.load_data('./data/train_text.txt', './data/train_label.txt')
+    # docs, labels = truncatedocs.truncate_docs(docs, labels)
+    docs = pickle.load(open("trun_doc.pkl", "rb"))
     last = len(docs) - 1
     for i in range(len(docs)):
         print i
-        print feature_coherence_score(docs[i])
+        # print feature_coherence_score(docs[i])
         # print feature_ratio_stop_content(docs[i])
-        # print feature_simple_statistics(docs[i])
+        print feature_simple_statistics(docs[i])
         # print feature_unseen_pairs(docs[i])
     #     print feature_repetition(docs[i])
     #     print feature_unseen_pairs(docs[i])
