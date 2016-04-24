@@ -197,7 +197,7 @@ def isdefined(param_name):
 	return res
 
 if __name__ == '__main__':
-	p = Pool(10)
+	#p = Pool(10)
 	ffunc_list = []
 	dep = Set([])
 	parser = argparse.ArgumentParser()
@@ -222,6 +222,7 @@ if __name__ == '__main__':
 	parser.add_argument("-fr", help="add feature_repetition", action="store_true")
 	parser.add_argument("-frcs",help="add feature_ratio_content_stop", action="store_true")
 	parser.add_argument("-fcscore",help="add feature_coherence_score", action="store_true")
+	parser.add_argument("-ftr",help="add feature_topical_redundancy", action="store_true")
 
 	'''
 		Added features from anglu
@@ -269,15 +270,17 @@ if __name__ == '__main__':
 	if args.fup:
 		ffunc_list.append(feature_unseen_pairs)
 		#dep.update(dependency["fup"])
-	if args.fup:
+	if args.fr:
 		ffunc_list.append(feature_repetition)
 		#dep.update(dependency["fr"])	
-	if args.fup:
+	if args.frcs:
 		ffunc_list.append(feature_ratio_content_stop)
 		#dep.update(dependency["frcs"])
-	if args.fup:
+	if args.fcscore:
 		ffunc_list.append(feature_coherence_score)
 		#dep.update(dependency["fcscore"])
+	if args.ftr:
+		ffunc_list.append(feature_topical_redundancy)
 	
 	print "ffunc_list",ffunc_list
 
@@ -319,7 +322,7 @@ if __name__ == '__main__':
 
 	
 	feature = []
-
+	print "start generating feature"
 	for docid, doc, doc_as_words, label in zip(range(len(train_docs)), train_docs, train_docs_as_words, train_labels):
 		ft = extract_feature(ffunc_list, doc, doc_as_words)
 		#print ft, label

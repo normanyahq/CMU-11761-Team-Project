@@ -11,14 +11,14 @@ class classify(LanguageModel):
         '''
         Save your model.
         '''
-        logging('Saving model into file: ' + model_file_name)
+        #logging('Saving model into file: ' + model_file_name)
         pickle.dump(self.model, open(model_file_name, "w"))
 
     def load_model(self, model_file_name):
         '''
         Load your model
         '''
-        logging('loading model from file: ' + model_file_name)
+        #logging('loading model from file: ' + model_file_name)
 
     def __init__(self, model_file_name=None,model=None):
         '''
@@ -48,9 +48,9 @@ class classify(LanguageModel):
         features = np.array(features)#preprocessing.scale(np.array(features))
         #labels = np.array(labels[int(len(labels)/10):])
         labels = np.array(labels)
-        print len(features),len(labels)
-        for i in range(len(features)):
-            print "feature: %s,label: %d" %(features[i],labels[i])
+        #print len(features),len(labels)
+        #for i in range(len(features)):
+        #    print "feature: %s,label: %d" %(features[i],labels[i])
         #labels = np.array([1,1,0,0])
         '''
         real_feature = []
@@ -65,7 +65,7 @@ class classify(LanguageModel):
         plt.hist(fake_feature)
         plt.show()
         '''
-        logging('start training...')
+        #logging('start training...')
         if self.model == 'logit': # logistic regression
             self.train_logit(features,labels)
         elif self.model == 'knn':
@@ -79,7 +79,7 @@ class classify(LanguageModel):
         else:
             print "No such model"
             raise
-        logging('training with %s done ' %self.model)
+        #logging('training with %s done ' %self.model)
         self.save_model(self.model+'.out')
         
 
@@ -93,10 +93,10 @@ class classify(LanguageModel):
         #features = pickle.load(open('feature_perp_ratio_dev.pkl'))
         features = pickle.load(open(feature_pkl))
         labels = []
-        print "start predicting"
+        #print "start predicting"
         for line in open('./data/dev_label.txt'):
             labels.append(int(line.strip()))
-        print features
+        #print features
         #labels = pickle.load(open('trun_label.pkl'))
         #labels = labels[int(len(labels)/10):2*int(len(labels)/10)]
         #labels = labels[:int(len(labels)/10)]
@@ -105,8 +105,8 @@ class classify(LanguageModel):
         features = np.array(features)
         predictions = self.model_obj.predict(features) # [[label]]
         probas = self.model_obj.predict_proba(features) # [[p0,p1]]
-        for i in range(len(features)):
-            print "feature: %f,label: %d,predictoin: %d" %(features[i][0],labels[i],predictions[i])
+        #for i in range(len(features)):
+        #    print "feature: %f,label: %d,predictoin: %d" %(features[i][0],labels[i],predictions[i])
         '''
         real_feature = []
         fake_feature = []
