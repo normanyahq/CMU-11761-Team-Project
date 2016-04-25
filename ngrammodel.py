@@ -14,7 +14,7 @@ def get_vocabulary(corpus_as_words):
     for doc_as_words in corpus_as_words:
         for words in doc_as_words:
             vocab.update(words)
-    print "Vocab Size: %d"% len(vocab)
+    #print "Vocab Size: %d"% len(vocab)
     return vocab
 
 def get_unigram_count(corpus_as_words):
@@ -26,7 +26,7 @@ def get_unigram_count(corpus_as_words):
 					unigram_count[word] = 1
 				else:
 					unigram_count[word] += 1
-	print "Unigram Count:", len(unigram_count)
+	#print "Unigram Count:", len(unigram_count)
 	return unigram_count
 
 def get_bigram_count(corpus_as_words):
@@ -40,7 +40,7 @@ def get_bigram_count(corpus_as_words):
 					bigram_count[(w1, w2)] = 1
 				else:
 					bigram_count[(w1, w2)] += 1
-	print "Bigram Count:", len(bigram_count)
+	#print "Bigram Count:", len(bigram_count)
 	return bigram_count
 
 def get_trigram_count(corpus_as_words):
@@ -55,7 +55,7 @@ def get_trigram_count(corpus_as_words):
 					trigram_count[(w1, w2, w3)] = 1
 				else:
 					trigram_count[(w1, w2, w3)] += 1
-	print "Trigram Count:", len(trigram_count)
+	#print "Trigram Count:", len(trigram_count)
 	return trigram_count
 
 def get_quadgram_count(corpus_as_words):
@@ -71,7 +71,7 @@ def get_quadgram_count(corpus_as_words):
 					quadgram_count[(w1, w2, w3, w4)] = 1
 				else:
 					quadgram_count[(w1, w2, w3, w4)] += 1
-	print "Quadgram Count:", len(quadgram_count)
+	#print "Quadgram Count:", len(quadgram_count)
 	return quadgram_count
 
 def count_dict_val(dic):
@@ -85,28 +85,28 @@ def get_unigram_log_prob(unigram_count):
 	unigram_prob = {}
 	for k in unigram_count:
 		unigram_prob[k] = np.log2(unigram_count[k]) - np.log2(total_count)
-	print "calculated unigram prob ... "
+	#print "calculated unigram prob ... "
 	return unigram_prob
 
 def get_bigram_conditional_log_prob(bigram_count, unigram_count):
 	bigram_prob = {}
 	for w1, w2 in bigram_count:
 		bigram_prob[(w1, w2)] = np.log2(bigram_count[(w1, w2)]) - np.log2(unigram_count[w1])
-	print "calculated bigram conditional prob ... "
+	#print "calculated bigram conditional prob ... "
 	return bigram_prob
 
 def get_trigram_conditional_log_prob(trigram_count, bigram_count):
 	trigram_prob = {}
 	for w1, w2, w3 in trigram_count:
 		trigram_prob[(w1, w2, w3)] = np.log2(trigram_count[(w1, w2, w3)]) - np.log2(bigram_count[(w1, w2)])
-	print "calculated trigram conditional prob ... "
+	#print "calculated trigram conditional prob ... "
 	return trigram_prob
 
 def get_quadgram_conditional_log_prob(quadgram_count, trigram_count):
 	quadgram_prob = {}
 	for w1, w2, w3, w4 in quadgram_count:
 		quadgram_prob[(w1, w2, w3, w4)] = np.log2(quadgram_count[(w1, w2, w3, w4)]) - np.log2(trigram_count[(w1, w2, w3)])
-	print "calculated quadgram conditional prob ... "
+	#print "calculated quadgram conditional prob ... "
 	return quadgram_prob
 
 def get_skipgram_conditional_log_prob(trigram_count):
@@ -120,7 +120,7 @@ def get_skipgram_conditional_log_prob(trigram_count):
 	skipgram_prob = {}
 	for (w1, w2, w3) in trigram_count:
 		skipgram_prob[(w1, w2, w3)] = np.log2(trigram_count[(w1, w2, w3)]) - np.log2(skipgram_count[(w1, w3)])
-	print "calculated skipgram conditional prob ... "
+	#print "calculated skipgram conditional prob ... "
 	return skipgram_prob
 
 def get_prob(log_prob_list, words, i):
@@ -149,7 +149,7 @@ def get_prob_skipgram(log_prob_list, words, i):
 	if i > 0: 
 		k = tuple(words[i-2:i+1])
 		if k in log_prob_list[0]:
-			print k
+			#print k
 			return log_prob_list[0][k]
 
 	for log_prob_ind in range(1, len(log_prob_list)):
@@ -165,7 +165,7 @@ def get_prob_skipgram(log_prob_list, words, i):
 			# print k, hist_len, start, i
 		# print k
 		if k in log_prob:
-			print k
+			#print k
 			return log_prob[k]
 
 	unigram_prob = log_prob_list[-1]
