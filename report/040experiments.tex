@@ -37,4 +37,21 @@ Articles from training set are truncated following the document length distribut
 \subsection{Classifier Choice}
 Popular classifiers for binary classification task are chosen as candidates, including KNN, logistic regression, SVM, gradient boosting (xgboost). Testing individual feature on development set and cross validation on training set, xgboost outperforms all the other algorithm by about 5\%. Also it is very fast comparing to SVM. So we choose xgboost as the final classier.
 
-\subsection{Result}
+\subsection{Results}
+The results of different feature sets are shown in Table ~\ref{tab:040res}. From the table we can tell that the statistical feature contribute most to the accuracy. Using it along could gave us a result close to the combined features. Syntactic features are not very useful in this experiment\footnote{Didn't run on dev set because of low performance on training set and large computation}. Although most semantic features fail to surpass an accuracy of 70, the combined semantic features get an accuracy of 80.
+\begin{table}[!h]
+	\begin{center}
+		\begin{tabular}{|c|c|c|c|}
+		\hline
+		Features&Avg. cv Train&Dev&Soft\\
+		\hline
+		Semantic & 80.2 & 80.0 & 74.9\\
+		Syntactic & 52.3 & &\\
+		Statistical & 85.4 &88.0&81.7\\
+		All combined & 89.4 & 89.0&86.0\\
+		\hline
+		\end{tabular}
+	\end{center}
+	\label{tab:040res}
+	\caption{Experiment results}
+\end{table}
