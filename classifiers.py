@@ -145,12 +145,12 @@ class classify(LanguageModel):
             soft += probas[i][labels[i]]
         soft /= len(predictions)
         #print "soft accuracy:", soft
-        correct = 0
-        for i in range(len(predictions)):
-            if labels[i] == predictions[i]:
-                correct += 1
-        #print "accuracy:",correct * 1.0/len(predictions)
         '''
+        #correct = 0
+        #for i in range(len(predictions)):
+        #    if labels[i] == predictions[i]:
+        #        correct += 1
+        #print "accuracy:",correct * 1.0/len(predictions)
         return
 
     def train_logit(self,features,labels):

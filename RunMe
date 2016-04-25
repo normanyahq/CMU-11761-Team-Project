@@ -1,15 +1,15 @@
 
 #!/#!/usr/bin/sh
-rm test_doc.txt
+#rm test_doc.txt
 while read line
 do
   echo "$line" >> test_doc.txt
 done < "${1:-/dev/stdin}"
 
-
+#echo start generating feature
 python feature.py -pd test_doc.txt -f43pprt -fccwp -fcs -fcscore  -fr -frcs -fss -ftr -fup -fs fall
-#python feature.py -pd test_doc.txt -f43pprt -fccwp -fcs -fpc -fup -fr -frcs -fcscore -ftr -fsl -fs fall
-#python predict.py xgboost.out ./all/dev_fall_new.pkl
+
+#echo start training
 python test.py xgboost ./all/train_fall_new.pkl pred_fall.pkl trun_label.pkl
 rm test_doc.txt
 rm pred_fall.pkl

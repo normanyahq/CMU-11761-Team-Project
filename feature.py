@@ -216,7 +216,8 @@ def extract_feature(ffunc_list, doc, doc_as_words):
 	res = []
 	tmp = None
 	for fn in ffunc_list:
-		tmp = fn(doc, doc_as_words)
+		#print fn
+                tmp = fn(doc, doc_as_words)
 		if type(tmp) is list:
 			if type(tmp[0]) in (list,tuple):
 				for e in tmp:
@@ -257,7 +258,7 @@ if __name__ == '__main__':
 	parser.add_argument("-pd", "--pred_doc", type=str, help="set prediction document path (pickle only)")
 
 	parser.add_argument("-fparser", help="add feature_reranking_parser_score", action="store_true")
-	parser.add_argument("-f43pprt", help="add feature_quad_tri_perplexity_ratio", action="store_true")
+
 	parser.add_argument("-fccwp", help="add feature_common_content_word_pairs", action="store_true")
 	parser.add_argument("-fcs", help="add feature_content_and_stopwords", action="store_true")
 	
@@ -266,6 +267,7 @@ if __name__ == '__main__':
 	'''
 	parser.add_argument("-fss", help="add feature_simple_statistics", action="store_true")
 	parser.add_argument("-fpc", help="add feature_percentage_corr", action="store_true")
+        parser.add_argument("-f43pprt", help="add feature_quad_tri_perplexity_ratio", action="store_true")
 	parser.add_argument("-fup", help="add feature_unseen_pairs", action="store_true")
 	parser.add_argument("-fr", help="add feature_repetition", action="store_true")
 	parser.add_argument("-frcs",help="add feature_ratio_content_stop", action="store_true")
@@ -303,9 +305,6 @@ if __name__ == '__main__':
 		ffunc_list.append(feature_reranking_parser_score)
 		dep.update(dependency["fparser"])
 
-	if args.f43pprt:
-		ffunc_list.append(feature_quad_tri_perplexity_ratio)
-		dep.update(dependency["f43pprt"])
 
 	if args.fccwp:
 		ffunc_list.append(feature_common_content_word_pairs)
@@ -318,6 +317,9 @@ if __name__ == '__main__':
 	if args.fcscore:
 		ffunc_list.append(feature_coherence_score)
 		#dep.update(dependency["fcscore"])
+        if args.f43pprt:
+                ffunc_list.append(feature_quad_tri_perplexity_ratio)
+                dep.update(dependency["f43pprt"])
 
 	if args.fr:
 		ffunc_list.append(feature_repetition)
@@ -390,7 +392,7 @@ if __name__ == '__main__':
 			# 	if isdefined(unigram_count):
 			# 		unigram_count = get_unigram_count(train_docs_as_words)
 			# 	content_words, stop_words = get_content_stop_words(unigram_count)
-			ccw_list = get_common_content_word_pairs(large_docs, large_docs_as_words, content_words, ccw_list_thresh, ccw_list_load)
+			ccw_list = get_common_content_word_pairs(pred_docs, pred_docs_as_words, content_words, ccw_list_thresh, ccw_list_load)
 
 	
 	feature = []
@@ -401,8 +403,8 @@ if __name__ == '__main__':
 			#print ft, label
 			feature.append(ft)
 
-			if docid % 200 == 199:
-				print ft, label
+			#if docid % 200 == 199:
+			#	print ft, label
 
 			if args.fsave:
 				pickle.dump(feature, open("train_"+args.fsave + ".pkl", "wb"))
@@ -414,8 +416,8 @@ if __name__ == '__main__':
 			# print ft, label
 			dev_feature.append(ft)
 
-			if docid % 200 == 199:
-				print ft, label
+			#if docid % 200 == 199:
+			#	print ft, label
 
 		if args.fsave:
 			pickle.dump(dev_feature, open("dev_"+args.fsave + ".pkl", "wb"))
@@ -426,8 +428,8 @@ if __name__ == '__main__':
 			# print ft, label
 			pred_feature.append(ft)
 
-			if docid % 200 == 199:
-				print ft
+			#if docid % 200 == 199:
+			#	print ft
 
 		if args.fsave:
 			pickle.dump(pred_feature, open("pred_"+args.fsave+".pkl", "wb"))
