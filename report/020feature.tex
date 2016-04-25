@@ -8,9 +8,9 @@ For semantic features, we've explored features related to content/stop words and
 %\end{enumerate}
 \textbf{1. Features about content/stop words} 
 \\\\Stop words are word which are filtered out before or after processing of natural language data. We use a stop words list 98 common stop words.\\
-\\Content words are words such as nouns, most verbs, adjectives, and adverbs that refer to some object, action, or characteristic. We generate a content word list using the training data according to words? frequency. We retrieved the words ranks top (using a threshold) and removed stop words.\\\\
+\\Content words are words such as nouns, most verbs, adjectives, and adverbs that refer to some object, action, or characteristic. We generate a content word list using the training data according to word frequency. We retrieved the words ranks top (using a threshold) and removed stop words.\\\\
 \textbf{2. Feature about word pairs}
-\\\\We use Yule's measure of association as measuring the correlation between word pairs.[1] The measure of semantic association will be defined based on the contingency table below.
+\\\\We use Yule's measure of association as measuring the correlation between word pairs\cite{Cai00exponentiallanguage}.The measure of semantic association will be defined based on the contingency table below.
 \begin{figure}[!h]
 \centering  
 \includegraphics[width = 0.7\linewidth]{./FIG/030/contigency}\hfill
@@ -41,7 +41,7 @@ Similar to the previous one, real articles would have a relative stable percenta
  \item Coherence score.\\[5pt]
 Coherence score are defined as the average correlation value of distant (distance $\geq$5) content pairs.
  \item Latent Semantic Analysis (LSA).\\[5pt]
-Inspired by the indexing technology, we've applied the idea of LSA to create a new feature which we believe can help improving the classification performance.[2] Let $X_{m\times{n}}$ be a matrix where element $X_{ij}$ describes the frequency of $Word_{i}$ in $Sentence_{j}$. Now, the dot product of $A_{n\times{n}} = X^{T}X$ contains all the dot products between the word vectors gives the correlation between the term over sentences. By using singular value decomposition (SVD), we can get  \begin{equation}
+Inspired by the indexing technology, we've applied the idea of LSA to create a new feature which we believe can help improving the classification performance\cite{Deerwester90indexingby}. Let $X_{m\times{n}}$ be a matrix where element $X_{ij}$ describes the frequency of $Word_{i}$ in $Sentence_{j}$. Now, the dot product of $A_{n\times{n}} = X^{T}X$ contains all the dot products between the word vectors gives the correlation between the term over sentences. By using singular value decomposition (SVD), we can get  \begin{equation}
 	A = U\Sigma{V^T}	
 \end{equation}
 Here, $\Sigma_{n\times{n}}$ is the diagonal matrix contains the singular value. Based on LSA, when you select the top $k$ largest singular values and their corresponding singular vectors from $U$ and $V$, you get the approximation to $A$. We use a threshold to select the top $k$ singular values and calculate the $A_{k}$. We use
@@ -61,7 +61,18 @@ However, the syntactic feature is only able to improve the prediction a little b
 The potential reason for the syntactic feature to be such useless might be that our data contains spoken scripts, which are much less grammatical than the official written language. Another reason might be that the parser is not accurate, since it was trained in mixcase corpus, while our corpus was all uppercase.
 
 \subsection{Statistical Feature}
+We also defines some statistical features for the data.
+
+\begin{itemize}
+\item Ratio of perplexity of trigram and quad-gram models
+
 Since the trigram model cannot capture information in the quad-gram model, we uses the ratio of perplexity of trigram and quad-gram models as one of the features. Since our training data is very small, the variance of the estimation will be very big. Thus, we used the same BNC corpus to estimate the probabilities of both trigram and quad-gram models. While the two type of articles will both have low perplexity score for the tri-gram model, the real articles would have lower perplexity for the quad-gram model than the fake articles. This implies that the ratio of trigram to quad-gram perplexities would be lower for a fake article than for a real article. Figure \ref{fig:ratio} shows the distribution of the feature in real articles and fake articles in the training data. As we can see, there is a significant difference of the feature between real and fake articles, which indicates that this is a good feature for distinguish two types of articles. 
+
+\item Count of uncommon pairs of words
+Content words are frequently occurring words in corpus that are not stop words. We ranked all words in the training data using their frequency and uses rank between 150 to 6500 word types as the content words. We then define the common content word pairs as content words that are at least 5 words apart in the real documents and are having frequency above some threshold. For a given article, a list of content word pairs is compared against this list and word pairs not in this list form the set of uncommon word pairs. 
+
+We assume that a real article is expected to have lesser number of uncommon content-word pairs than fake articles. So we used probability of finding an uncommon content-word pair in an article as one of our features. This probability is greater for fake articles than the real articles and we use this probability as a feature for the classification task.
+\end{itemize}
 
 \begin{figure}
 \centering  
