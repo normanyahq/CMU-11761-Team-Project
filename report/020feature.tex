@@ -11,11 +11,12 @@ For semantic features, we've explored features related to content/stop words and
 \\Content words are words such as nouns, most verbs, adjectives, and adverbs that refer to some object, action, or characteristic. We generate a content word list using the training data according to words? frequency. We retrieved the words ranks top (using a threshold) and removed stop words.\\\\
 \textbf{2. Feature about word pairs}
 \\\\We use Yule's measure of association as measuring the correlation between word pairs.[1] The measure of semantic association will be defined based on the contingency table below.
-\begin{figure*}
+%\begin{figure*}
+\begin{figure}[!h]
 \centering  
-\includegraphics[width = 0.4\linewidth]{./FIG/030/contigency}\hfill
+\includegraphics[width = 0.6\linewidth]{./FIG/030/contigency}\hfill
 \label{fig:020feature}
-\end{figure*}
+\end{figure}
 For each word pair, $C_{11}$ is the count of sentences in the training corpus that contains the word pair; $C_{12}$ is the 
 subtraction of the count of sentences contains word1 and $C_{11}$; $C_{21}$ is the subtraction of the count of sentences contains word2 and $C_{11}$; $C_{22}$ is the total number of sentences subtracting $C_{11}$, $C_{12}$ and $C_{21}$.\\
 \\Then we calculate the Q-statistics as the correlation value between word pairs:
@@ -44,10 +45,12 @@ Coherence score are defined as the average correlation value of distant (distanc
 Inspired by the indexing technology, we?ve applied the idea of LSA to create a new feature which we believe can help improving the classification performance.[2] Let $X_{m\times{n}}$ be a matrix where element $X_{ij}$ describes the frequency of $Word_{i}$ in $Sentence_{j}$. Now, the dot product of $A_{n\times{n}} = X^{T}X$ contains all the dot products between the word vectors gives the correlation between the term over sentences. By using singular value decomposition (SVD), we can get  \begin{equation}
 	A = U\Sigma{V^T}	
 \end{equation}
-Here, $\Sigma_{n\times{n}}$ is the diagonal matrix contains the singular value. Based on LSA, when you select the top $k$ largest singular values and their corresponding singular vectors from $U$ and $V$, you get the approximation to $A$. We use a threshold to select the top $k$ singular values and calculate the $A_{k}$. We use\begin{equation}
+Here, $\Sigma_{n\times{n}}$ is the diagonal matrix contains the singular value. Based on LSA, when you select the top $k$ largest singular values and their corresponding singular vectors from $U$ and $V$, you get the approximation to $A$. We use a threshold to select the top $k$ singular values and calculate the $A_{k}$. We use
+\begin{equation}
 	loss = \|A - A_{k}\|
 \end{equation}
-as the feature which represent the information loss using approximation. For real articles, the loss should be small while fake articles should be relatively large.
+as the feature which represent the information loss using approximation. For real articles, the loss should be small while fake articles should be relatively large.
+
  
 \end{itemize}
 
