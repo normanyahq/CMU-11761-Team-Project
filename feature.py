@@ -390,7 +390,7 @@ if __name__ == '__main__':
 			# 	if isdefined(unigram_count):
 			# 		unigram_count = get_unigram_count(train_docs_as_words)
 			# 	content_words, stop_words = get_content_stop_words(unigram_count)
-			ccw_list = get_common_content_word_pairs(train_docs, large_docs_as_words, content_words, ccw_list_thresh, ccw_list_load)
+			ccw_list = get_common_content_word_pairs(large_docs, large_docs_as_words, content_words, ccw_list_thresh, ccw_list_load)
 
 	
 	feature = []
