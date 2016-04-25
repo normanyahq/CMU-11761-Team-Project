@@ -12,7 +12,7 @@ class classify(LanguageModel):
         Save your model.
         '''
         #logging('Saving model into file: ' + model_file_name)
-        pickle.dump(self.model, open(model_file_name, "w"))
+        pickle.dump(self.model_obj, open(model_file_name, "w"))
 
     def load_model(self, model_file_name):
         '''
@@ -44,8 +44,9 @@ class classify(LanguageModel):
         #features = pickle.load(open('feature_perp_ratio_train.pkl'))
         features = pickle.load(open(feature_pkl))
         #features = [[x] for x in features] #!!!!!ONLY USED FOR SINGLE FEATURE
-        labels = pickle.load(open('trun_label.pkl'))
+        labels = pickle.load(open(label_pkl))
         features = np.array(features)#preprocessing.scale(np.array(features))
+        #print features[0]
         #labels = np.array(labels[int(len(labels)/10):])
         labels = np.array(labels)
         #print len(features),len(labels)
@@ -57,13 +58,19 @@ class classify(LanguageModel):
         fake_feature = []
         for i in range(len(labels)):
             if labels[i] == 1:
-                real_feature.append(features[i][0])
+                real_feature.append(features[i])
             else:
-                fake_feature.append(features[i][0])
+                fake_feature.append(features[i])
         plt.figure()
-        plt.hist(real_feature)
-        plt.hist(fake_feature)
-        plt.show()
+        bins = []
+        step = 0
+        for i in range(40):
+            bins.append(step)
+            step +=0.05
+        plt.hist(real_feature,bins=bins)
+        plt.hist(fake_feature,bins=bins)
+        plt.title('Perplexity ratio of quadgram and trigram on truncated training set')
+        plt.savefig('./report/FIG/030/ratio.png')
         '''
         #logging('start training...')
         if self.model == 'logit': # logistic regression
@@ -103,8 +110,12 @@ class classify(LanguageModel):
         labels = np.array(labels)
         #features = [[x] for x in features]
         features = np.array(features)
+        #print features[0]
         predictions = self.model_obj.predict(features) # [[label]]
         probas = self.model_obj.predict_proba(features) # [[p0,p1]]
+        for i in range(len(predictions)):
+            print probas[i][0],probas[i][1],predictions[i]
+        #print "sample prob",probas[0],labels[0]
         #for i in range(len(features)):
         #    print "feature: %f,label: %d,predictoin: %d" %(features[i][0],labels[i],predictions[i])
         '''
@@ -128,11 +139,18 @@ class classify(LanguageModel):
         #print probas[0][0],probas[0][1],predictions[0]
         print predictions
         '''
+        '''
+        soft = 0.0
+        for i in range(len(predictions)):
+            soft += probas[i][labels[i]]
+        soft /= len(predictions)
+        #print "soft accuracy:", soft
         correct = 0
         for i in range(len(predictions)):
             if labels[i] == predictions[i]:
                 correct += 1
-        print "accuracy:",correct * 1.0/len(predictions)
+        #print "accuracy:",correct * 1.0/len(predictions)
+        '''
         return
 
     def train_logit(self,features,labels):
@@ -152,4 +170,5 @@ class classify(LanguageModel):
     #    pass # try xgboost instead
     def train_xgboost(self,features,labels):
         import xgboost as xgb
+        #print features.size,labels.size
         self.model_obj = xgb.XGBClassifier().fit(features,labels)

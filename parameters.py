@@ -17,4 +17,7 @@ fparse_mean=True
 fparse_max=True
 fparse_min=True
 
+# large corpus path
+large_corpus_path = './data/LM-train-100MW.txt.gz.txt'
+
 

@@ -2,15 +2,16 @@ import sys
 import pickle
 from classifiers import classify
 from matplotlib import pyplot as plt
-def plot_trunc_len_dist(trun_doc_pkl):
-    prev = 0
-    curr = 0
+def plot_trunc_len_dist(trun_doc_pkl,title,save_path):
+
     ls = []
     docs = pickle.load(open(trun_doc_pkl))
     for doc in docs:
         ls.append(len(doc))
     plt.hist(ls)
-    plt.show()
+    plt.title(title)
+    plt.savefig(save_path)
+
 def plot_feature_hist(features,labels,feature_name):
     OUTDIR = './test/plot/'
     #features = pickle.load(open(train_feature_pkl))

@@ -1,26 +1,15 @@
-#!/usr/bin/python
-import sys
-from randomguess import RandomGuess
-import random
-from utilities import logging, load_data, cross_validation
+
+#!/#!/usr/bin/sh
+rm test_doc.txt
+while read line
+do
+  echo "$line" >> test_doc.txt
+done < "${1:-/dev/stdin}"
 
 
-def train(docs, labels):
-    model = RandomGuess()
-    model.train(docs, labels)
-    model.save_model("randomguess.dat")
-    return model
-
-
-def main(model=None):
-    docs = sys.stdin.readlines()
-    if not model:
-        model = RandomGuess('randomguess.dat')
-    for doc in docs:
-        print model.predict(doc)
-
-if __name__ == "__main__":
-    # main()
-    docs, labels = load_data('data/dev_text.txt', 'data/dev_label.txt')
-    # main(train(docs, labels))
-    cross_validation(RandomGuess(), docs, labels, 10)
+python feature.py -pd test_doc.txt -f43pprt -fccwp -fcs -fcscore  -fr -frcs -fss -ftr -fup -fs fall
+#python feature.py -pd test_doc.txt -f43pprt -fccwp -fcs -fpc -fup -fr -frcs -fcscore -ftr -fsl -fs fall
+#python predict.py xgboost.out ./all/dev_fall_new.pkl
+python test.py xgboost ./all/train_fall_new.pkl pred_fall.pkl trun_label.pkl
+rm test_doc.txt
+rm pred_fall.pkl

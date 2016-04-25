@@ -1,6 +1,7 @@
 from parameters import *
 import random
 import pickle
+import os
 
 def logging(message):
     if show_log:
@@ -38,6 +39,31 @@ def load_data(doc_file_name, label_file_name):
     logging("Loaded %d docs, %d labels" % (len(docs), len(labels)))
     return docs, labels
 
+def load_docs(doc_file_name):
+    '''
+    Load docs and labels from files, and remove the '~~~~' and
+        '<s>', '</s>' tags, re-organize them into lists:
+            docs = [doc_0, doc_1, ... doc_n]
+            doc_i = [sentence_0, sentence_1, ... sentence_n]
+            sentence_i is a string
+    return: docs: list of docs as described above,
+            labels: list of integers, each is a label of corresponding doc
+    '''
+    docs = []
+    with open(doc_file_name) as f:
+        docs = f.read()
+
+    docs = docs.split('~~~~~')
+    docs = [doc.replace('\n', '').replace('<s>', '').split('</s>') for doc in docs if doc]
+    t_docs = []
+    for doc in docs:
+        doc = [sentence for sentence in doc if sentence.strip()]
+        t_docs.append(doc)
+    docs = t_docs
+
+    #logging("Loaded %d docs, %d labels" % (len(docs), len(labels)))
+    return docs
+
 def get_real_docs(docs, labels):
     doc_label = zip(docs, labels)
     real_docs = [doc for doc, label in doc_label if label == 1]
@@ -59,6 +85,37 @@ def get_docs_as_wordlist(docs):
         new_docs.append(new_doc)
     return new_docs
 
+def combine_features(feature_path,prefix):
+    SUFFIX = 'all_new.pkl'
+    SUFFIX_old = 'all.pkl'
+    SUFFIX_foo = 'all_test.pkl'
+    DUMPDIR = feature_path+'/'+prefix+SUFFIX
+    feature_pkls = []
+    features_by_name = []
+    features_by_sample = []
+    for f in os.listdir(feature_path):
+        if f.startswith(prefix) and f.endswith('pkl') and f != (prefix + SUFFIX) and f != (prefix + SUFFIX_old) and f != (prefix + SUFFIX_foo):
+            feature_pkls.append(f)
+    for pkl in feature_pkls:
+        print pkl
+        try:
+            features_by_name.append(pickle.load(open(pkl)))
+        except:
+            continue
+    for i in range(len(features_by_name[0])):
+        features = []
+        for feature in features_by_name:
+            #print feature[i]
+            if type(feature[i]) is list:
+                features += feature[i]
+            else:
+                features.append(feature[i])
+
+        features_by_sample.append(features)
+    print len(features_by_sample),len(features_by_sample[0])
+    print feature_path+'/'+prefix+SUFFIX
+    pickle.dump(features_by_sample,open(DUMPDIR,'w'))
+    return
 
 def cross_validation(model, docs, labels, batch_num):
     '''
