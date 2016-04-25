@@ -4,8 +4,8 @@ import pickle
 import os
 
 def logging(message):
-    if show_log:
-        print message
+    #if show_log:
+    #    print message
     if save_log_to_file:
         with open(log_filename, "a") as f:
             f.write(str(message) + '\n')
@@ -97,7 +97,6 @@ def combine_features(feature_path,prefix):
         if f.startswith(prefix) and f.endswith('pkl') and f != (prefix + SUFFIX) and f != (prefix + SUFFIX_old) and f != (prefix + SUFFIX_foo):
             feature_pkls.append(f)
     for pkl in feature_pkls:
-        print pkl
         try:
             features_by_name.append(pickle.load(open(pkl)))
         except:
@@ -112,8 +111,8 @@ def combine_features(feature_path,prefix):
                 features.append(feature[i])
 
         features_by_sample.append(features)
-    print len(features_by_sample),len(features_by_sample[0])
-    print feature_path+'/'+prefix+SUFFIX
+    #print len(features_by_sample),len(features_by_sample[0])
+    #print feature_path+'/'+prefix+SUFFIX
     pickle.dump(features_by_sample,open(DUMPDIR,'w'))
     return
 
