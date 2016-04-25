@@ -63,11 +63,9 @@ The potential reason for the syntactic feature to be such useless might be that 
 \subsection{Statistical Feature}
 Since the trigram model cannot capture information in the quad-gram model, we uses the ratio of perplexity of trigram and quad-gram models as one of the features. Since our training data is very small, the variance of the estimation will be very big. Thus, we used the same BNC corpus to estimate the probabilities of both trigram and quad-gram models. While the two type of articles will both have low perplexity score for the tri-gram model, the real articles would have lower perplexity for the quad-gram model than the fake articles. This implies that the ratio of trigram to quad-gram perplexities would be lower for a fake article than for a real article. Figure \ref{fig:ratio} shows the distribution of the feature in real articles and fake articles in the training data. As we can see, there is a significant difference of the feature between real and fake articles, which indicates that this is a good feature for distinguish two types of articles. 
 
-\begin{wrapfigure}{r}{0.5\textwidth}
-  \begin{center}
-    \includegraphics[width=0.48\textwidth]{./FIG/030/ratio}
-    \caption{Histogram for the ratio of perplexity of trigram and quadgram} \label{fig:ratio}
-  \end{center}
-  \caption{A gull}
-\end{wrapfigure}
+\begin{figure*}
+\centering  
+\includegraphics[width = 0.4\linewidth]{./FIG/030/ratio}\hfill
+\caption{Histogram for the ratio of perplexity of trigram and quadgram} label{fig:ratio}
+\end{figure*}
 
