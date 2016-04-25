@@ -12,6 +12,7 @@
 \usepackage{pifont}
 \usepackage{multirow}
 \usepackage{floatrow}
+\usepackage[toc,page]{appendix}
 
 
 % christos: these look closer to NSF specs\dots
@@ -92,15 +93,19 @@
 \section{Conclusions}
     \label{sec:conclusions}
     \input{050conclusions}
-
-\section{Comment}
-    \label{sec:comment}
-    \input{060comment}
-
     
 \clearpage
 \bibliography{BIB/YLH,BIB/YRH,BIB/AL,BIB/HQY}
 \bibliographystyle{plain}
+
+\begin{appendices}
+\section{Contribution}
+    \label{sec:contribution}
+    \input{contribution}
+\section{Comments}
+    \label{sec:comments}
+    \input{comments}
+\end{appendices}
 
 %\newpage
 %\appendix

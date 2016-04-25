@@ -1,0 +1,30 @@
+
+This assignment gives us a chance to apply statistical method on classification problem, which is good practice 
+for real problems that we will meet in the future. We analyzed the task together, and discussed what features
+are reasonable, what models are best for this 2-class classification problem, and how we could develop the 
+program together. 
+
+We not only get a sense of how the language models work, but also learned techniques in
+team management\footnote{We used team management tool Teambition to share files and manage tasks} 
+and software engineering\footnote{We used Git for version control and Tmux to extract data and train model
+remotely on server clusters, and parallelize our programs to accelerate the calculation}.
+
+For feature extraction part, we found that heuristic works better than our thought. Some simple features
+  such as the repetition of phrases can lead to more than 80\% accuracy by only using this very feature. 
+  We also found that the performance of language modeling is better than our thought. By using a combination of
+   3 to 5 features, we can easily get an accuracy of over 80\%.
+      However, we found that once achieved a nearly 90\% accuracy, the improvement become really difficult. 
+   Only by adding reasonable features won't help, it might even lead to overfitting if we are not training on a massive corpus.
+
+
+
+One thing worth mentioning is that, for the 4-gram perplexity feature, which has the best performance among
+all of ours, was almost abandoned for poor performance in the beginning, giving an accuracy less than 60\%, which 
+is significantly less than our expectation. We proposed several methods to locate the potential bug in the code of our models and 
+feature extraction parts, but still couldn't figure out the reason. Then, according to the information we get from the previous 
+methods, we went back to the theory itself, and finally realize that the training corpus we chose was not large enough to 
+support a 4-gram model. Thus, we run our program on larger corpus\footnote{LM-train-100MW.txt.gz} to get more reliable 
+distribution. Then the accuracy was improved significantly. So aside from good features, the size of training data matters 
+a lot since it matter a lot in the model training process.
+
+
